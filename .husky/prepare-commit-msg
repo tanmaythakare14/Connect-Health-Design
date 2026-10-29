@@ -1,4 +1,10 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+# $2 is the message source git passes in: "message" for `git commit -m/-F`
+# and IDE commit boxes, plus "merge" / "squash" / "commit" (amend).
+# Only a plain `git commit` in a terminal has no source, so only that opens
+# the interactive commitizen prompt; the others already have a message and
+# would fail here because there's no terminal to answer the prompt.
+if [ -n "$2" ]; then
+  exit 0
+fi
 
 npx cz --hook
