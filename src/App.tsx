@@ -60,8 +60,13 @@ function App(): JSX.Element {
         <SignInScreen onSignedIn={(username) => setUser({ name: username })} />
       )}
 
-      {/* One app-wide toast host; screens call toast() from 'sonner'. */}
-      <Toaster theme={theme} position="bottom-right" />
+      {/* One app-wide toast host; screens call toast() from 'sonner'.
+          Top offset clears the 56px top bar so toasts don't cover the avatar. */}
+      <Toaster
+        theme={theme}
+        position="top-right"
+        offset={{ top: 72, right: 24 }}
+      />
     </>
   );
 }

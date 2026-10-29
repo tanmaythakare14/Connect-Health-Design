@@ -90,16 +90,6 @@
   --color-sidebar-border: #2a2637;
 }
 
-/*
- * Toasts (Sonner) use our popover tokens so they follow light/dark mode.
- * The extra :root raises specificity above Sonner's own injected theme rules.
- */
-:root [data-sonner-toaster][data-sonner-theme] {
-  --normal-bg: var(--color-popover);
-  --normal-text: var(--color-popover-foreground);
-  --normal-border: var(--color-border);
-}
-
 @layer base {
   * {
     @apply border-border;
