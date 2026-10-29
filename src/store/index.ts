@@ -10,6 +10,7 @@ import {
   REGISTER,
 } from 'redux-persist';
 import { secureLocalStorage } from '../utils/secureStorage';
+import uiReducer from './slices/uiSlice';
 
 /**
  * Secure storage adapter for redux-persist
@@ -67,6 +68,7 @@ const sampleReducer = (
 const rootReducer = combineReducers({
   // Add your reducers here
   sample: sampleReducer,
+  ui: uiReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -1,0 +1,22 @@
+node_modules
+
+# Build output
+dist
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local environment (secrets)
+.env
+.env.*
+!.env.example
+
+# Claude Code runtime state
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
+
+# Editor / OS
+.DS_Store
+Thumbs.db
