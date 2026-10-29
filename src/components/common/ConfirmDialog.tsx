@@ -1,5 +1,5 @@
 import { useState, type JSX } from 'react';
-import { CircleQuestionMark, LoaderCircle, TriangleAlert } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +34,6 @@ export function ConfirmDialog({
 }: ConfirmDialogProps): JSX.Element {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const Icon = destructive ? TriangleAlert : CircleQuestionMark;
 
   const handleOpenChange = (nextOpen: boolean): void => {
     if (isPending) {
@@ -62,31 +61,20 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="sm:max-w-md">
-        <div className="flex items-start gap-4">
-          <span
-            className={cn(
-              'flex size-10 shrink-0 items-center justify-center rounded-full',
-              destructive
-                ? 'bg-destructive/10 text-destructive'
-                : 'bg-accent text-primary',
-            )}
-          >
-            <Icon className="size-5" aria-hidden />
-          </span>
-          <AlertDialogHeader className="gap-1.5 text-left">
-            <AlertDialogTitle>{title}</AlertDialogTitle>
-            <AlertDialogDescription>{description}</AlertDialogDescription>
-          </AlertDialogHeader>
-        </div>
+      <AlertDialogContent className="gap-6 rounded-xl sm:max-w-md">
+        <AlertDialogHeader className="gap-2 text-left">
+          <AlertDialogTitle className="text-base">{title}</AlertDialogTitle>
+          <AlertDialogDescription className="leading-relaxed wrap-anywhere">
+            {description}
+          </AlertDialogDescription>
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+        </AlertDialogHeader>
 
-        {error && (
-          <p role="alert" className="text-sm text-destructive">
-            {error}
-          </p>
-        )}
-
-        <AlertDialogFooter className="pt-2">
+        <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>
             {cancelLabel}
           </AlertDialogCancel>

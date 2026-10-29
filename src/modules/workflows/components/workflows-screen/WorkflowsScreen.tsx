@@ -434,11 +434,11 @@ export function WorkflowsScreen(): JSX.Element {
         title="Delete workflow?"
         description={
           <>
+            This permanently deletes{' '}
             <span className="font-medium text-foreground">
-              {deleteTarget?.name}
+              “{deleteTarget?.name}”
             </span>{' '}
-            and all of its nodes will be permanently deleted. This can’t be
-            undone.
+            and all of its nodes. You can’t undo this.
           </>
         }
         confirmLabel="Delete workflow"
