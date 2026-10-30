@@ -375,6 +375,8 @@ export interface RawEventsToolbarProps {
   onStatusChange: (value: RawEventStatusFilter) => void;
   level: RawEventLevelFilter;
   onLevelChange: (value: RawEventLevelFilter) => void;
+  isRefreshing: boolean;
+  onRefresh: () => void;
   disabled?: boolean;
 }
 

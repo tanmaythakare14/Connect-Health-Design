@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { CircleAlert, ScrollText, SearchX } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
 import { EmptyState, TablePagination } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -46,6 +47,7 @@ export function RawEventsPanel(): JSX.Element {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_RAW_EVENT_PAGE_SIZE);
   const [knownTotal, setKnownTotal] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   // Ignores responses for filters or pages the user has already left.
   const latestRequestId = useRef(0);
 
@@ -59,28 +61,47 @@ export function RawEventsPanel(): JSX.Element {
     [debouncedSearch, level, status, dateRange],
   );
 
-  const loadEvents = useCallback(async (): Promise<void> => {
-    const requestId = ++latestRequestId.current;
-    setListState({ status: 'loading' });
-    try {
-      const result = await listRawEvents({
-        ...filters,
-        page,
-        pageSize,
-      });
-      if (requestId !== latestRequestId.current) return;
-      setListState({
-        status: 'success',
-        events: result.events.map(apiDtoToRawEvent),
-        total: result.total,
-      });
-      setKnownTotal(result.total);
-    } catch (error) {
-      if (requestId !== latestRequestId.current) return;
-      logger.error('Loading application events failed', { error });
-      setListState({ status: 'error' });
-    }
-  }, [filters, page, pageSize]);
+  /**
+   * A refresh keeps the current rows on screen (the button spins instead of
+   * the table flashing skeletons) and reports a failure as a toast.
+   */
+  const loadEvents = useCallback(
+    async ({ isRefresh = false } = {}): Promise<void> => {
+      const requestId = ++latestRequestId.current;
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setListState({ status: 'loading' });
+      }
+      try {
+        const result = await listRawEvents({
+          ...filters,
+          page,
+          pageSize,
+        });
+        if (requestId !== latestRequestId.current) return;
+        setListState({
+          status: 'success',
+          events: result.events.map(apiDtoToRawEvent),
+          total: result.total,
+        });
+        setKnownTotal(result.total);
+      } catch (error) {
+        if (requestId !== latestRequestId.current) return;
+        logger.error('Loading application events failed', { error });
+        if (isRefresh) {
+          toast.error('Couldn’t refresh events', {
+            description: 'Please try again.',
+          });
+        } else {
+          setListState({ status: 'error' });
+        }
+      } finally {
+        if (isRefresh) setIsRefreshing(false);
+      }
+    },
+    [filters, page, pageSize],
+  );
 
   useEffect(() => {
     void loadEvents();
@@ -159,6 +180,9 @@ export function RawEventsPanel(): JSX.Element {
         onStatusChange={handleStatusChange}
         level={level}
         onLevelChange={handleLevelChange}
+        isRefreshing={isRefreshing}
+        onRefresh={() => void loadEvents({ isRefresh: true })}
+        disabled={listState.status === 'loading'}
       />
 
       <RawEventTable
