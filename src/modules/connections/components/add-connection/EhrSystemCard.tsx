@@ -1,5 +1,4 @@
 import type { JSX } from 'react';
-import { ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,8 +10,9 @@ import { cn } from '@/lib/utils';
 import type { EhrSystemCardProps } from '../../@types';
 import { EHR_CAPABILITY_PREVIEW_COUNT } from '../../constants';
 
+// Light primary tint (accent tokens), not the full primary colour.
 const CAPABILITY_CHIP_CLASS_NAME =
-  'rounded-md border-transparent bg-muted font-normal text-muted-foreground';
+  'rounded-md border-transparent bg-accent font-normal text-accent-foreground';
 
 export function EhrSystemCard({
   ehrSystem,
@@ -30,7 +30,7 @@ export function EhrSystemCard({
       className={cn(
         'group relative flex h-full flex-col rounded-xl border bg-card p-5 transition-all duration-200 ease-out',
         isAvailable
-          ? 'hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-within:border-primary/60 focus-within:ring-[3px] focus-within:ring-ring/20'
+          ? 'hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md'
           : 'bg-muted/30',
       )}
     >
@@ -48,24 +48,14 @@ export function EhrSystemCard({
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h2
-              className={cn(
-                'truncate text-base font-semibold',
-                isAvailable ? 'text-foreground' : 'text-muted-foreground',
-              )}
-            >
-              {name}
-            </h2>
-            {!isAvailable && (
-              <Badge
-                variant="outline"
-                className="shrink-0 rounded-full font-medium text-muted-foreground"
-              >
-                Coming soon
-              </Badge>
+          <h2
+            className={cn(
+              'truncate text-base font-semibold',
+              isAvailable ? 'text-foreground' : 'text-muted-foreground',
             )}
-          </div>
+          >
+            {name}
+          </h2>
           <p
             title={description}
             className="mt-1 line-clamp-2 text-sm text-muted-foreground"
@@ -110,31 +100,17 @@ export function EhrSystemCard({
         )}
       </ul>
 
-      {/* mt-auto pins the footer to the bottom so cards in a row line up */}
+      {/* mt-auto pins the button to the bottom so cards in a row line up */}
       <div className="mt-auto pt-5">
-        <div className="flex items-center justify-end border-t pt-3">
-          {isAvailable ? (
-            // The ::after overlay stretches this button over the whole card,
-            // so the card is one large click target with a single tab stop.
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onSelect(ehrSystem)}
-              aria-label={`Select ${name}`}
-              className="-mr-2 text-primary after:absolute after:inset-0 after:rounded-xl after:content-[''] hover:bg-accent hover:text-primary"
-            >
-              Select
-              <ArrowRight
-                aria-hidden
-                className="transition-transform duration-200 ease-out group-hover:translate-x-0.5"
-              />
-            </Button>
-          ) : (
-            <span className="py-1.5 text-sm text-muted-foreground">
-              Not available yet
-            </span>
-          )}
-        </div>
+        {isAvailable ? (
+          <Button className="w-full" onClick={() => onSelect(ehrSystem)}>
+            Select {name}
+          </Button>
+        ) : (
+          <Button className="w-full" variant="secondary" disabled>
+            Coming soon
+          </Button>
+        )}
       </div>
     </article>
   );

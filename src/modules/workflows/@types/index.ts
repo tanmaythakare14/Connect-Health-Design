@@ -77,10 +77,14 @@ export interface WorkflowCardProps {
   onDelete: (workflow: Workflow) => void;
 }
 
-export interface WorkflowCardMenuProps {
+export interface WorkflowStatusToggleButtonProps {
   workflowName: string;
   status: WorkflowStatus;
   onToggleStatus: () => void;
+}
+
+export interface WorkflowCardMenuProps {
+  workflowName: string;
   onExport: () => void;
   onSettings: () => void;
   onDelete: () => void;

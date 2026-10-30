@@ -16,7 +16,7 @@ export const MOCK_CONNECTIONS: ConnectionApiDto[] = [
     source: 'epic',
     name: 'coh 947',
     type: 'standalone',
-    status: 'draft',
+    status: 'active',
   },
   {
     id: 'ad23312e-317d-4b8a-a5f0-2c9e8d7b6a13',
@@ -30,14 +30,14 @@ export const MOCK_CONNECTIONS: ConnectionApiDto[] = [
     source: 'epic',
     name: 'Test SMART',
     type: 'embed',
-    status: 'draft',
+    status: 'inactive',
   },
   {
     id: '3914ea89-f5cb-4a6d-b0e3-8c2f7d1e9b54',
     source: 'opendental',
     name: 'coh 723 new opendental',
     type: 'opendental',
-    status: 'draft',
+    status: 'active',
   },
   {
     id: '1cb5db13-bcef-4f92-a7d8-3e6b1c0a5f47',
@@ -51,14 +51,14 @@ export const MOCK_CONNECTIONS: ConnectionApiDto[] = [
     source: 'veradigm',
     name: 'coh 723 all script unity',
     type: 'unity',
-    status: 'draft',
+    status: 'inactive',
   },
   {
     id: '7d2e4f81-9a3c-4b67-8e15-0f4c2b9a6d38',
     source: 'epic',
     name: 'Riverside Health backend sync',
     type: 'backend',
-    status: 'draft',
+    status: 'active',
   },
   {
     id: 'b84c0e57-2d19-4a83-b6f4-9e1d7c3a5b62',
@@ -72,14 +72,14 @@ export const MOCK_CONNECTIONS: ConnectionApiDto[] = [
     source: 'opendental',
     name: 'Lakeview Dental',
     type: 'opendental',
-    status: 'draft',
+    status: 'inactive',
   },
   {
     id: 'e61b8c42-5f07-4d3a-9b8e-1c7a2d6f0e95',
     source: 'veradigm',
     name: 'Unity scheduling feed',
     type: 'unity',
-    status: 'draft',
+    status: 'active',
   },
   {
     id: '92c4a7e3-0b6d-4f15-8a29-d3e5f1b7c046',
@@ -93,7 +93,7 @@ export const MOCK_CONNECTIONS: ConnectionApiDto[] = [
     source: 'epic',
     name: 'Mercy General labs backend',
     type: 'backend',
-    status: 'draft',
+    status: 'active',
   },
   {
     id: 'c3d81f6a-7e24-4b9c-a0f5-2e8b4d1c9a37',
@@ -107,7 +107,7 @@ export const MOCK_CONNECTIONS: ConnectionApiDto[] = [
     source: 'opendental',
     name: 'Brightsmile orthodontics',
     type: 'opendental',
-    status: 'draft',
+    status: 'inactive',
   },
   {
     id: 'f2b9d4e7-6a08-4c51-b7e3-0d1f5c9a2e68',
@@ -128,7 +128,7 @@ export const MOCK_CONNECTIONS: ConnectionApiDto[] = [
     source: 'epic',
     name: 'Nightly encounters export',
     type: 'backend',
-    status: 'draft',
+    status: 'active',
   },
   {
     id: '2b5e8a14-d3f6-4c97-b0a2-7e9c4f1d6b85',
@@ -163,7 +163,7 @@ export const MOCK_CONNECTIONS: ConnectionApiDto[] = [
     source: 'epic',
     name: 'Claims backend pipeline',
     type: 'backend',
-    status: 'draft',
+    status: 'inactive',
   },
   {
     id: '37b9a0e6-c5d2-4e81-a6f4-9d8e2b1c7f35',

@@ -1,3 +1,3 @@
-export { SelectEhrScreen } from './SelectEhrScreen';
+export { AddConnectionScreen } from './AddConnectionScreen';
 export { EhrSystemCard } from './EhrSystemCard';
 export { EnterpriseSupportCallout } from './EnterpriseSupportCallout';

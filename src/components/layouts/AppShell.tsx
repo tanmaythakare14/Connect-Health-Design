@@ -38,7 +38,13 @@ export function AppShell({
   const guidesAutoOpenDisabled = useAppSelector(selectGuidesAutoOpenDisabled);
 
   return (
-    <div className="flex h-screen flex-col bg-canvas">
+    // The shell is locked to the viewport: the page itself never scrolls, only
+    // <main> (and the sidebar nav) scroll internally. `relative` matters as much
+    // as `overflow-hidden`: absolutely positioned descendants (sr-only labels,
+    // Radix's hidden native inputs) are only clipped by an overflow container
+    // that is also their containing block — without it they stretch the
+    // document and the whole window scrolls.
+    <div className="relative flex h-screen flex-col overflow-hidden bg-canvas">
       <AppTopBar
         user={user}
         logoSrc={PRODUCT_LOGO_SRC}
@@ -86,7 +92,9 @@ export function AppShell({
           }
         />
 
-        <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
+        <main className="relative min-w-0 flex-1 overflow-y-auto">
+          {children}
+        </main>
       </div>
     </div>
   );

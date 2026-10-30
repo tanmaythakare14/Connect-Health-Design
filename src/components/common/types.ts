@@ -51,6 +51,25 @@ export interface SuccessDialogProps {
   secondaryAction?: SuccessDialogAction;
 }
 
+export type PasswordInputProps = Omit<ComponentProps<'input'>, 'type'>;
+
+export type ReadOnlyInputProps = Omit<
+  ComponentProps<'input'>,
+  'readOnly' | 'onChange'
+>;
+
+export interface CopyFieldProps {
+  /** The read-only value to show and copy */
+  value: string;
+  /** Accessible name for the field, e.g. "OAuth callback URL" */
+  label: string;
+  id?: string;
+  /** Called after a successful copy (e.g. to mark a setup step done) */
+  onCopied?: () => void;
+}
+
+export type CopyTextBlockProps = CopyFieldProps;
+
 export type LineTabsListProps = ComponentProps<typeof TabsList>;
 export type LineTabsTriggerProps = ComponentProps<typeof TabsTrigger>;
 

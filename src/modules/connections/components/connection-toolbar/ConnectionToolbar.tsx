@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { ListFilter, Search } from 'lucide-react';
+import { CircleDot, ListFilter, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -9,8 +9,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { ConnectionToolbarProps } from '../../@types';
-import { ALL_TYPES_FILTER, CONNECTION_TYPE_OPTIONS } from '../../constants';
-import { isConnectionTypeFilter } from '../../utils';
+import {
+  ALL_STATUSES_FILTER,
+  ALL_TYPES_FILTER,
+  CONNECTION_STATUS_OPTIONS,
+  CONNECTION_TYPE_OPTIONS,
+} from '../../constants';
+import { isConnectionStatusFilter, isConnectionTypeFilter } from '../../utils';
 import { ConnectionUsageBadge } from './ConnectionUsageBadge';
 
 export function ConnectionToolbar({
@@ -18,6 +23,8 @@ export function ConnectionToolbar({
   onSearchChange,
   typeFilter,
   onTypeFilterChange,
+  statusFilter,
+  onStatusFilterChange,
   usage,
   onUsageInfo,
   actions,
@@ -65,6 +72,32 @@ export function ConnectionToolbar({
           <SelectContent align="end">
             <SelectItem value={ALL_TYPES_FILTER}>All types</SelectItem>
             {CONNECTION_TYPE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => {
+            if (isConnectionStatusFilter(value)) {
+              onStatusFilterChange(value);
+            }
+          }}
+          disabled={disabled}
+        >
+          <SelectTrigger
+            className="w-40 bg-background"
+            aria-label="Filter by status"
+          >
+            <CircleDot aria-hidden />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="end">
+            <SelectItem value={ALL_STATUSES_FILTER}>All statuses</SelectItem>
+            {CONNECTION_STATUS_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>

@@ -13,7 +13,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { logger } from '@/utils/logger';
-import type { EhrSystemListState, SelectEhrScreenProps } from '../../@types';
+import type {
+  AddConnectionScreenProps,
+  EhrSystemListState,
+} from '../../@types';
 import { EHR_SKELETON_CARD_COUNT } from '../../constants';
 import { apiDtoToEhrSystem, listEhrSystems } from '../../service';
 import { filterEhrSystems } from '../../utils';
@@ -23,10 +26,11 @@ import { EnterpriseSupportCallout } from './EnterpriseSupportCallout';
 const GRID_CLASS_NAME =
   'grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4';
 
-export function SelectEhrScreen({
+/** Add New Connection — step 1: choose the EHR system to connect to. */
+export function AddConnectionScreen({
   onBack,
   onSelect,
-}: SelectEhrScreenProps): JSX.Element {
+}: AddConnectionScreenProps): JSX.Element {
   const [listState, setListState] = useState<EhrSystemListState>({
     status: 'loading',
   });
@@ -81,7 +85,7 @@ export function SelectEhrScreen({
                 <Skeleton className="h-5 w-20 bg-muted" />
                 <Skeleton className="h-5 w-14 bg-muted" />
               </div>
-              <Skeleton className="mt-8 ml-auto h-6 w-20 bg-muted" />
+              <Skeleton className="mt-8 h-9 w-full bg-muted" />
             </div>
           ))}
         </div>

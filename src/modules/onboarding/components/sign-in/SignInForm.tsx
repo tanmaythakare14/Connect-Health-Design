@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { SignInFormProps } from '../../@types';
 import { signInSchema, type SignInFormValues } from './schema';
-import { PasswordInput } from './PasswordInput';
+import { PasswordInput } from '@/components/common';
 
 export function SignInForm({ onSubmit }: SignInFormProps): JSX.Element {
   const form = useForm<SignInFormValues>({

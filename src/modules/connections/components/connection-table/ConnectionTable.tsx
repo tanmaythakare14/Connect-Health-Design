@@ -20,6 +20,8 @@ export function ConnectionTable({
   emptyState,
   footer,
   onManage,
+  onToggleActive,
+  onTest,
 }: ConnectionTableProps): JSX.Element {
   return (
     <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
@@ -72,6 +74,8 @@ export function ConnectionTable({
                 key={connection.id}
                 connection={connection}
                 onManage={onManage}
+                onToggleActive={onToggleActive}
+                onTest={onTest}
               />
             ))}
         </TableBody>

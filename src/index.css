@@ -25,8 +25,8 @@
   --color-popover: #ffffff;
   --color-popover-foreground: #0f172a;
 
-  /* Brand purple from the ConnectHealth logo (redesign brief) */
-  --color-primary: #8246e2;
+  /* Brand primary (client feedback). Mirrored in src/config/colors.ts — keep in sync. */
+  --color-primary: #7234ae;
   --color-primary-foreground: #ffffff;
 
   --color-secondary: #f1f5f9;
@@ -35,19 +35,20 @@
   --color-muted: #f1f5f9;
   --color-muted-foreground: #64748b;
 
-  --color-accent: #f3edfd;
-  --color-accent-foreground: #6a2fc8;
+  /* Light primary tint + darker primary text on it (chips, hovers) */
+  --color-accent: #f4eff9;
+  --color-accent-foreground: #5b2a8c;
 
   --color-destructive: #dc2626;
   --color-destructive-foreground: #ffffff;
 
   --color-border: #e5e7eb;
   --color-input: #e5e7eb;
-  --color-ring: #8246e2;
+  --color-ring: #7234ae;
 
   --color-sidebar: #ffffff;
   --color-sidebar-foreground: #334155;
-  --color-sidebar-accent: #f3edfd;
+  --color-sidebar-accent: #f4eff9;
   --color-sidebar-border: #e5e7eb;
 }
 
@@ -64,8 +65,8 @@
   --color-popover: #1a1824;
   --color-popover-foreground: #ecebf3;
 
-  /* Lifted purple so it holds contrast on dark surfaces */
-  --color-primary: #9b6cf0;
+  /* Primary lifted for dark surfaces; still ~5:1 with white button text */
+  --color-primary: #8752ba;
   --color-primary-foreground: #ffffff;
 
   --color-secondary: #1e1b29;
@@ -74,15 +75,15 @@
   --color-muted: #1e1b29;
   --color-muted-foreground: #9b98ab;
 
-  --color-accent: #241d38;
-  --color-accent-foreground: #cdb8ff;
+  --color-accent: #251a35;
+  --color-accent-foreground: #d5c2e7;
 
   --color-destructive: #f05252;
   --color-destructive-foreground: #ffffff;
 
   --color-border: #2a2637;
   --color-input: #2a2637;
-  --color-ring: #9b6cf0;
+  --color-ring: #8752ba;
 
   --color-sidebar: #0e0c15;
   --color-sidebar-foreground: #c4c1d3;

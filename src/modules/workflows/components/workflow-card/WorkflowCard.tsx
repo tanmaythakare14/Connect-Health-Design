@@ -5,6 +5,7 @@ import { formatUpdatedLabel } from '../../utils';
 import { WorkflowCardMenu } from './WorkflowCardMenu';
 import { WorkflowConnectionChips } from './WorkflowConnectionChips';
 import { WorkflowStatusBadge } from './WorkflowStatusBadge';
+import { WorkflowStatusToggleButton } from './WorkflowStatusToggleButton';
 
 export function WorkflowCard({
   workflow,
@@ -64,14 +65,19 @@ export function WorkflowCard({
               <time dateTime={updatedAt}>{formatUpdatedLabel(updatedAt)}</time>
             </span>
           </div>
-          <WorkflowCardMenu
-            workflowName={name}
-            status={status}
-            onToggleStatus={() => onToggleStatus(workflow)}
-            onExport={() => onExport(workflow)}
-            onSettings={() => onSettings(workflow)}
-            onDelete={() => onDelete(workflow)}
-          />
+          <div className="flex items-center gap-0.5">
+            <WorkflowStatusToggleButton
+              workflowName={name}
+              status={status}
+              onToggleStatus={() => onToggleStatus(workflow)}
+            />
+            <WorkflowCardMenu
+              workflowName={name}
+              onExport={() => onExport(workflow)}
+              onSettings={() => onSettings(workflow)}
+              onDelete={() => onDelete(workflow)}
+            />
+          </div>
         </div>
       </div>
     </article>

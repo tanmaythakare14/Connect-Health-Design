@@ -4,11 +4,16 @@ import { Badge } from '@/components/ui/badge';
 import type { ConnectionStatusBadgeProps } from '../../@types';
 import { CONNECTION_STATUS_LABELS } from '../../constants';
 
-// Draft is a neutral, not-yet-live state — kept quiet so future failure states stand out.
+// Active is live (green), inactive uses the danger (destructive) tokens per
+// client feedback, draft isn't set up yet (blue, as in the original console).
 const statusBadgeVariants = cva('gap-1.5 rounded-full font-medium', {
   variants: {
     status: {
-      draft: 'border-border bg-muted text-muted-foreground',
+      active:
+        'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300',
+      inactive: 'border-destructive/25 bg-destructive/10 text-destructive',
+      draft:
+        'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300',
     },
   },
 });
@@ -16,7 +21,9 @@ const statusBadgeVariants = cva('gap-1.5 rounded-full font-medium', {
 const statusDotVariants = cva('size-1.5 rounded-full', {
   variants: {
     status: {
-      draft: 'bg-muted-foreground/70',
+      active: 'bg-emerald-500',
+      inactive: 'bg-destructive',
+      draft: 'bg-blue-500',
     },
   },
 });

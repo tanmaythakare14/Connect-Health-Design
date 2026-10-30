@@ -18,7 +18,10 @@ export function AppSidebar({
         isCollapsed ? 'w-16' : 'w-60',
       )}
     >
-      <nav aria-label="Main" className="flex-1 space-y-1 overflow-y-auto p-3">
+      <nav
+        aria-label="Main"
+        className="relative flex-1 space-y-1 overflow-y-auto p-3"
+      >
         {items.map((item) => (
           <SidebarNavItem
             key={item.id}

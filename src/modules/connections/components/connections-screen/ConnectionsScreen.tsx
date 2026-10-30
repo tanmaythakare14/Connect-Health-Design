@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
 import { Cable, CircleAlert, Plus, SearchX } from 'lucide-react';
+import { toast } from 'sonner';
 import { EmptyState, TablePagination } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { getPageCount, paginate } from '@/utils/pagination';
@@ -8,11 +9,15 @@ import type {
   Connection,
   ConnectionListState,
   ConnectionsView,
+  ConnectionStatus,
+  ConnectionStatusFilter,
   ConnectionTypeFilter,
   EhrSystem,
 } from '../../@types';
 import {
+  ALL_STATUSES_FILTER,
   ALL_TYPES_FILTER,
+  CONNECTION_STATUS,
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
 } from '../../constants';
@@ -21,11 +26,14 @@ import {
   apiDtoToConnectionUsage,
   getConnectionUsage,
   listConnections,
+  updateConnectionStatus,
 } from '../../service';
 import { filterConnections } from '../../utils';
 import { ConnectionTable } from '../connection-table';
 import { ConnectionToolbar } from '../connection-toolbar';
-import { SelectEhrScreen } from '../select-ehr';
+import { AddConnectionScreen } from '../add-connection';
+import { ManageConnectionScreen } from '../manage-connection';
+import { TestConnectionScreen } from '../test-connection';
 
 export function ConnectionsScreen(): JSX.Element {
   const [listState, setListState] = useState<ConnectionListState>({
@@ -34,10 +42,14 @@ export function ConnectionsScreen(): JSX.Element {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] =
     useState<ConnectionTypeFilter>(ALL_TYPES_FILTER);
+  const [statusFilter, setStatusFilter] =
+    useState<ConnectionStatusFilter>(ALL_STATUSES_FILTER);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   // Local view switch until a router exists; the list keeps its filters while away.
   const [view, setView] = useState<ConnectionsView>('list');
+  const [testTarget, setTestTarget] = useState<Connection | null>(null);
+  const [manageTarget, setManageTarget] = useState<Connection | null>(null);
 
   const loadConnections = useCallback(async (): Promise<void> => {
     setListState({ status: 'loading' });
@@ -69,8 +81,8 @@ export function ConnectionsScreen(): JSX.Element {
     [listState],
   );
   const filteredConnections = useMemo(
-    () => filterConnections(allConnections, search, typeFilter),
-    [allConnections, search, typeFilter],
+    () => filterConnections(allConnections, search, typeFilter, statusFilter),
+    [allConnections, search, typeFilter, statusFilter],
   );
   const currentPage = Math.min(
     page,
@@ -78,7 +90,9 @@ export function ConnectionsScreen(): JSX.Element {
   );
   const pageConnections = paginate(filteredConnections, currentPage, pageSize);
   const hasActiveFilters =
-    search.trim() !== '' || typeFilter !== ALL_TYPES_FILTER;
+    search.trim() !== '' ||
+    typeFilter !== ALL_TYPES_FILTER ||
+    statusFilter !== ALL_STATUSES_FILTER;
 
   // Any change to what's being looked at starts again from page 1.
   const handleSearchChange = (value: string): void => {
@@ -89,6 +103,10 @@ export function ConnectionsScreen(): JSX.Element {
     setTypeFilter(value);
     setPage(1);
   };
+  const handleStatusFilterChange = (value: ConnectionStatusFilter): void => {
+    setStatusFilter(value);
+    setPage(1);
+  };
   const handlePageSizeChange = (value: number): void => {
     setPageSize(value);
     setPage(1);
@@ -96,23 +114,100 @@ export function ConnectionsScreen(): JSX.Element {
   const handleClearFilters = (): void => {
     setSearch('');
     setTypeFilter(ALL_TYPES_FILTER);
+    setStatusFilter(ALL_STATUSES_FILTER);
     setPage(1);
   };
 
+  // MOCK: status changes are applied locally first, then saved via the
+  // service; a failed save puts the old status back.
+  const setConnectionStatus = (
+    connectionId: string,
+    status: ConnectionStatus,
+  ): void => {
+    setListState((current) =>
+      current.status === 'success'
+        ? {
+            ...current,
+            data: current.data.map((item) =>
+              item.id === connectionId ? { ...item, status } : item,
+            ),
+          }
+        : current,
+    );
+  };
+
+  const saveConnectionStatus = (
+    connection: Connection,
+    status: ConnectionStatus,
+    previousStatus: ConnectionStatus,
+  ): Promise<void> => {
+    setConnectionStatus(connection.id, status);
+    return updateConnectionStatus(connection.id, status).catch((error) => {
+      logger.error('Updating connection status failed', {
+        connectionId: connection.id,
+        error,
+      });
+      setConnectionStatus(connection.id, previousStatus);
+      toast.error('Couldn’t update the connection', {
+        description: 'Please try again.',
+      });
+      throw error;
+    });
+  };
+
+  const handleToggleActive = (connection: Connection): void => {
+    const previousStatus = connection.status;
+    const nextStatus =
+      previousStatus === CONNECTION_STATUS.ACTIVE
+        ? CONNECTION_STATUS.INACTIVE
+        : CONNECTION_STATUS.ACTIVE;
+
+    const undo = {
+      label: 'Undo',
+      onClick: () => {
+        void saveConnectionStatus(connection, previousStatus, nextStatus).catch(
+          () => undefined,
+        ); // already reported via toast
+      },
+    };
+
+    saveConnectionStatus(connection, nextStatus, previousStatus)
+      .then(() => {
+        if (nextStatus === CONNECTION_STATUS.ACTIVE) {
+          toast.success('Connection activated', {
+            description: `“${connection.name}” is live and can be tested.`,
+            action: undo,
+          });
+        } else {
+          toast.info('Connection deactivated', {
+            description: `“${connection.name}” won’t exchange data until you turn it back on.`,
+            action: undo,
+          });
+        }
+      })
+      .catch(() => undefined); // already reported via toast
+  };
+
+  const handleTest = (connection: Connection): void => {
+    setTestTarget(connection);
+    setView('test-connection');
+  };
+
   const handleAddConnection = (): void => {
-    setView('select-ehr');
+    setView('add-connection');
   };
   // MOCK: the configure step after choosing an EHR doesn't exist yet.
   const handleSelectEhr = (ehrSystem: EhrSystem): void => {
     logger.info('EHR system selected', { ehrSystemId: ehrSystem.id });
   };
 
-  // MOCK: no manage flow or counting explainer exist yet.
+  // MOCK: no counting explainer exists yet.
   const handleUsageInfo = (): void => {
     logger.info('Connection usage explainer requested');
   };
   const handleManage = (connection: Connection): void => {
-    logger.info('Manage connection requested', { connectionId: connection.id });
+    setManageTarget(connection);
+    setView('manage-connection');
   };
 
   const renderEmptyState = (): JSX.Element => {
@@ -140,7 +235,7 @@ export function ConnectionsScreen(): JSX.Element {
         <EmptyState
           icon={SearchX}
           title="No connections match your filters"
-          description="Try a different search term or connection type."
+          description="Try a different search term, type or status."
           action={
             <Button variant="outline" size="sm" onClick={handleClearFilters}>
               Clear filters
@@ -164,11 +259,29 @@ export function ConnectionsScreen(): JSX.Element {
     );
   };
 
-  if (view === 'select-ehr') {
+  if (view === 'add-connection') {
     return (
-      <SelectEhrScreen
+      <AddConnectionScreen
         onBack={() => setView('list')}
         onSelect={handleSelectEhr}
+      />
+    );
+  }
+
+  if (view === 'test-connection' && testTarget) {
+    return (
+      <TestConnectionScreen
+        connection={testTarget}
+        onBack={() => setView('list')}
+      />
+    );
+  }
+
+  if (view === 'manage-connection' && manageTarget) {
+    return (
+      <ManageConnectionScreen
+        connection={manageTarget}
+        onBack={() => setView('list')}
       />
     );
   }
@@ -190,6 +303,8 @@ export function ConnectionsScreen(): JSX.Element {
           onSearchChange={handleSearchChange}
           typeFilter={typeFilter}
           onTypeFilterChange={handleTypeFilterChange}
+          statusFilter={statusFilter}
+          onStatusFilterChange={handleStatusFilterChange}
           usage={listState.status === 'success' ? listState.usage : undefined}
           onUsageInfo={handleUsageInfo}
           disabled={listState.status !== 'success'}
@@ -207,6 +322,8 @@ export function ConnectionsScreen(): JSX.Element {
           skeletonRowCount={DEFAULT_PAGE_SIZE}
           emptyState={renderEmptyState()}
           onManage={handleManage}
+          onToggleActive={handleToggleActive}
+          onTest={handleTest}
           footer={
             listState.status === 'success' &&
             filteredConnections.length > 0 && (

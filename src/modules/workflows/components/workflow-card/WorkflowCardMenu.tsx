@@ -1,12 +1,5 @@
 import type { JSX } from 'react';
-import {
-  Download,
-  EllipsisVertical,
-  Pause,
-  Play,
-  Settings,
-  Trash,
-} from 'lucide-react';
+import { Download, EllipsisVertical, Settings, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -16,18 +9,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { WorkflowCardMenuProps } from '../../@types';
-import { WORKFLOW_STATUS } from '../../constants';
 
 export function WorkflowCardMenu({
   workflowName,
-  status,
-  onToggleStatus,
   onExport,
   onSettings,
   onDelete,
 }: WorkflowCardMenuProps): JSX.Element {
-  const isActive = status === WORKFLOW_STATUS.ACTIVE;
-
   return (
     // Non-modal: Delete opens a dialog straight from this menu, and a modal menu
     // can leave the page's pointer-events locked when the two overlap.
@@ -44,10 +32,6 @@ export function WorkflowCardMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuItem onSelect={onToggleStatus}>
-          {isActive ? <Pause aria-hidden /> : <Play aria-hidden />}
-          {isActive ? 'Pause workflow' : 'Resume workflow'}
-        </DropdownMenuItem>
         <DropdownMenuItem onSelect={onExport}>
           <Download aria-hidden />
           Export

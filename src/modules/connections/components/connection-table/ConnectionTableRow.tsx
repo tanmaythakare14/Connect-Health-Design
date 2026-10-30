@@ -1,16 +1,18 @@
 import type { JSX } from 'react';
-import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
 import type { ConnectionTableRowProps } from '../../@types';
 import { CELL_CLASS_NAME } from './columns';
+import { ConnectionActionsCell } from './ConnectionActionsCell';
 import { ConnectionIdCell } from './ConnectionIdCell';
 import { ConnectionSourceCell } from './ConnectionSourceCell';
-import { ConnectionStatusBadge } from './ConnectionStatusBadge';
+import { ConnectionStatusCell } from './ConnectionStatusCell';
 import { ConnectionTypeBadge } from './ConnectionTypeBadge';
 
 export function ConnectionTableRow({
   connection,
   onManage,
+  onToggleActive,
+  onTest,
 }: ConnectionTableRowProps): JSX.Element {
   return (
     <TableRow className="hover:bg-muted/40">
@@ -32,20 +34,17 @@ export function ConnectionTableRow({
         <ConnectionTypeBadge type={connection.type} />
       </TableCell>
       <TableCell className={CELL_CLASS_NAME}>
-        <ConnectionStatusBadge status={connection.status} />
+        <ConnectionStatusCell
+          connection={connection}
+          onToggleActive={onToggleActive}
+        />
       </TableCell>
       <TableCell className={CELL_CLASS_NAME}>
-        {/* Tertiary action: text-weight button, no fill or border.
-            -ml-3 cancels the button's own padding so "Manage" lines up with the header. */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-3 text-primary hover:bg-accent hover:text-primary"
-          onClick={() => onManage(connection)}
-          aria-label={`Manage ${connection.name}`}
-        >
-          Manage
-        </Button>
+        <ConnectionActionsCell
+          connection={connection}
+          onManage={onManage}
+          onTest={onTest}
+        />
       </TableCell>
     </TableRow>
   );

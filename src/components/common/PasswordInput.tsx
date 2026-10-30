@@ -3,7 +3,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import type { PasswordInputProps } from '../../@types';
+import type { PasswordInputProps } from './types';
 
 export function PasswordInput({
   className,

@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { MAIN_NAV_ITEMS, SETTINGS_NAV_ITEM } from '@/config/navigation';
 import { useApplyTheme } from '@/hooks/useApplyTheme';
 import { ConnectionsScreen } from '@/modules/connections';
+import { LogsScreen } from '@/modules/logs';
 import { SignInScreen } from '@/modules/onboarding';
 import { WorkflowsScreen } from '@/modules/workflows';
 import { useAppSelector } from '@/store/hooks';
@@ -44,6 +45,8 @@ function App(): JSX.Element {
             <ConnectionsScreen />
           ) : activePageId === 'workflows' ? (
             <WorkflowsScreen />
+          ) : activePageId === 'logs' ? (
+            <LogsScreen />
           ) : (
             // Placeholder until each page is designed
             <div className="p-6">
