@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import type { DateRange } from 'react-day-picker';
 import type { TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export interface FileDropzoneProps {
@@ -83,6 +84,15 @@ export interface TablePaginationProps {
   pageSizeOptions: number[];
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
+}
+
+export interface DateRangeFilterProps {
+  /** The applied range; undefined means "all time" */
+  value: DateRange | undefined;
+  onChange: (range: DateRange | undefined) => void;
+  /** Trigger label when no range is applied, e.g. "All time" */
+  placeholder?: string;
+  disabled?: boolean;
 }
 
 export interface EmptyStateProps {

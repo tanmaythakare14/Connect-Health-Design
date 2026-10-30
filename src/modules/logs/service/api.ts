@@ -1,6 +1,8 @@
 import type {
   ListNewRunsParams,
+  ListRawEventsParams,
   ListRunsParams,
+  RawEventPageDto,
   RunApiDto,
   RunDetailApiDto,
   RunListPageDto,
@@ -15,7 +17,8 @@ import {
   getMockRunWorkflows,
   spawnMockLiveRuns,
 } from '../mocks/runs';
-import { matchesRunFilters } from '../utils';
+import { getMockRawEvents } from '../mocks/rawEvents';
+import { matchesRawEventFilters, matchesRunFilters } from '../utils';
 
 const MOCK_LATENCY_MS = 400;
 /** Long enough to see refreshed runs as "Running" before they finish */
@@ -81,4 +84,24 @@ export async function listRunWorkflowOptions(): Promise<
 > {
   await simulateLatency();
   return getMockRunWorkflows();
+}
+
+/**
+ * One page of application events, newest first
+ * (GET /logs/events?search&level&status&from&to&page&pageSize).
+ */
+export async function listRawEvents(
+  params: ListRawEventsParams,
+): Promise<RawEventPageDto> {
+  await simulateLatency();
+  const matching = getMockRawEvents().filter((event) =>
+    matchesRawEventFilters(event, params),
+  );
+  const start = (params.page - 1) * params.pageSize;
+  return {
+    events: matching
+      .slice(start, start + params.pageSize)
+      .map((event) => ({ ...event })),
+    total: matching.length,
+  };
 }

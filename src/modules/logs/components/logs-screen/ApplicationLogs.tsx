@@ -1,8 +1,8 @@
 import type { JSX } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { APPLICATION_LOG_TABS } from '../../constants';
+import { RawEventsPanel } from '../raw-events-panel';
 import { RunsPanel } from '../runs-panel';
-import { LogsPlaceholder } from './LogsPlaceholder';
 
 /** Application logs, split into workflow runs and raw log lines. */
 export function ApplicationLogs(): JSX.Element {
@@ -21,10 +21,7 @@ export function ApplicationLogs(): JSX.Element {
         <RunsPanel />
       </TabsContent>
       <TabsContent value={APPLICATION_LOG_TABS.RAW}>
-        <LogsPlaceholder
-          title="Raw logs are on the way"
-          description="The raw log stream hasn’t been designed yet."
-        />
+        <RawEventsPanel />
       </TabsContent>
     </Tabs>
   );

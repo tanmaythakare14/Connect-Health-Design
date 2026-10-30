@@ -1,7 +1,11 @@
 import type { ReactNode } from 'react';
+import type { DateRange } from 'react-day-picker';
 import type {
+  ALL_RAW_EVENTS_FILTER,
   ALL_RUN_STATUSES_FILTER,
   ALL_WORKFLOWS_FILTER,
+  RAW_EVENT_LEVEL,
+  RAW_EVENT_STATUS,
   RUN_STATUS,
   RUN_STEP_STATUS,
 } from '../constants';
@@ -297,4 +301,112 @@ export interface RunListFooterProps {
 export interface LogsPlaceholderProps {
   title: string;
   description: string;
+}
+
+// ── Raw application events ───────────────────────────────────────
+
+export type RawEventLevel =
+  (typeof RAW_EVENT_LEVEL)[keyof typeof RAW_EVENT_LEVEL];
+
+export type RawEventStatus =
+  (typeof RAW_EVENT_STATUS)[keyof typeof RAW_EVENT_STATUS];
+
+export type RawEventLevelFilter = typeof ALL_RAW_EVENTS_FILTER | RawEventLevel;
+
+export type RawEventStatusFilter =
+  | typeof ALL_RAW_EVENTS_FILTER
+  | RawEventStatus;
+
+// DTO — one application log event (currently mocks/rawEvents.ts)
+export interface RawEventApiDto {
+  id: string;
+  /** ISO timestamp */
+  occurredAt: string;
+  level: RawEventLevel;
+  status: RawEventStatus;
+  /** Instance that wrote the event, e.g. "healthconnect-ip-10-0-2-58.ec2.internal-34" */
+  source: string;
+  message: string;
+  correlationId: string | null;
+}
+
+export interface RawEvent {
+  id: string;
+  occurredAt: string;
+  level: RawEventLevel;
+  status: RawEventStatus;
+  source: string;
+  message: string;
+  correlationId: string | null;
+}
+
+export interface RawEventFilters {
+  search: string;
+  level: RawEventLevelFilter;
+  status: RawEventStatusFilter;
+  /** ISO bounds, inclusive; null = open-ended */
+  from: string | null;
+  to: string | null;
+}
+
+export interface ListRawEventsParams extends RawEventFilters {
+  /** 1-based */
+  page: number;
+  pageSize: number;
+}
+
+export interface RawEventPageDto {
+  events: RawEventApiDto[];
+  /** Matching events across all pages */
+  total: number;
+}
+
+export type RawEventListState =
+  | { status: 'loading' }
+  | { status: 'success'; events: RawEvent[]; total: number }
+  | { status: 'error' };
+
+export interface RawEventsToolbarProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  dateRange: DateRange | undefined;
+  onDateRangeChange: (range: DateRange | undefined) => void;
+  status: RawEventStatusFilter;
+  onStatusChange: (value: RawEventStatusFilter) => void;
+  level: RawEventLevelFilter;
+  onLevelChange: (value: RawEventLevelFilter) => void;
+  disabled?: boolean;
+}
+
+export interface RawEventTableProps {
+  events: RawEvent[];
+  isLoading: boolean;
+  emptyState: ReactNode;
+  footer?: ReactNode;
+}
+
+export interface RawEventRowProps {
+  event: RawEvent;
+  isExpanded: boolean;
+  detailId: string;
+  onToggleExpanded: (event: RawEvent) => void;
+}
+
+export interface RawEventDetailRowProps {
+  event: RawEvent;
+  id: string;
+}
+
+export interface CopyableIdProps {
+  value: string;
+  /** Lower-case noun for the copy button, e.g. "event ID" */
+  label: string;
+}
+
+export interface RawEventStatusBadgeProps {
+  status: RawEventStatus;
+}
+
+export interface RawEventLevelBadgeProps {
+  level: RawEventLevel;
 }

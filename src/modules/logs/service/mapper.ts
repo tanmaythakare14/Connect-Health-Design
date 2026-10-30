@@ -1,4 +1,6 @@
 import type {
+  RawEvent,
+  RawEventApiDto,
   Run,
   RunApiDto,
   RunDetail,
@@ -73,4 +75,16 @@ export function apiDtoToRunWorkflowOption(
   dto: RunWorkflowOptionDto,
 ): RunWorkflowOption {
   return { id: dto.id, name: dto.name };
+}
+
+export function apiDtoToRawEvent(dto: RawEventApiDto): RawEvent {
+  return {
+    id: dto.id,
+    occurredAt: dto.occurredAt,
+    level: dto.level,
+    status: dto.status,
+    source: dto.source,
+    message: dto.message,
+    correlationId: dto.correlationId,
+  };
 }

@@ -1,4 +1,9 @@
+import type { DateRange } from 'react-day-picker';
 import type {
+  RawEventApiDto,
+  RawEventFilters,
+  RawEventLevelFilter,
+  RawEventStatusFilter,
   Run,
   RunFilters,
   RunGroup,
@@ -6,13 +11,113 @@ import type {
   RunStep,
 } from '../@types';
 import {
+  ALL_RAW_EVENTS_FILTER,
   ALL_RUN_STATUSES_FILTER,
   ALL_WORKFLOWS_FILTER,
   INSTANT_STEP_MAX_MS,
+  RAW_EVENT_LEVEL_FILTER_OPTIONS,
+  RAW_EVENT_STATUS_FILTER_OPTIONS,
   RUN_STATUS,
   RUN_STATUS_FILTER_OPTIONS,
   RUN_STEP_STATUS,
 } from '../constants';
+
+// ── Raw application events ───────────────────────────────────────
+
+const eventDateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+});
+
+const eventFullFormatter = new Intl.DateTimeFormat('en-US', {
+  dateStyle: 'full',
+  timeStyle: 'long',
+});
+
+export function isRawEventStatusFilter(
+  value: string,
+): value is RawEventStatusFilter {
+  return RAW_EVENT_STATUS_FILTER_OPTIONS.some(
+    (option) => option.value === value,
+  );
+}
+
+export function isRawEventLevelFilter(
+  value: string,
+): value is RawEventLevelFilter {
+  return RAW_EVENT_LEVEL_FILTER_OPTIONS.some(
+    (option) => option.value === value,
+  );
+}
+
+/** "Oct 30, 17:06:24" — the event's local date and time. */
+export function formatEventDateTime(iso: string): string {
+  return eventDateFormatter.format(new Date(iso));
+}
+
+/** "2026 (Local)" — the year line under the date. */
+export function formatEventYear(iso: string): string {
+  return `${new Date(iso).getFullYear()} (Local)`;
+}
+
+/** "Friday, October 30, 2026 at 5:06:24 PM GMT+5:30" — for the detail view. */
+export function formatEventFullTimestamp(iso: string): string {
+  return eventFullFormatter.format(new Date(iso));
+}
+
+/** Calendar days → inclusive ISO bounds (start of the first day, end of the last). */
+export function dateRangeToIsoBounds(range: DateRange | undefined): {
+  from: string | null;
+  to: string | null;
+} {
+  if (!range?.from) return { from: null, to: null };
+  const start = new Date(range.from);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(range.to ?? range.from);
+  end.setHours(23, 59, 59, 999);
+  return { from: start.toISOString(), to: end.toISOString() };
+}
+
+/** Search matches the message, event ID, correlation ID or source. */
+export function matchesRawEventFilters(
+  event: RawEventApiDto,
+  filters: RawEventFilters,
+): boolean {
+  const query = filters.search.trim().toLowerCase();
+  const matchesSearch =
+    query === '' ||
+    [event.message, event.id, event.correlationId ?? '', event.source].some(
+      (field) => field.toLowerCase().includes(query),
+    );
+  const matchesLevel =
+    filters.level === ALL_RAW_EVENTS_FILTER || event.level === filters.level;
+  const matchesStatus =
+    filters.status === ALL_RAW_EVENTS_FILTER || event.status === filters.status;
+  const matchesRange =
+    (filters.from === null || event.occurredAt >= filters.from) &&
+    (filters.to === null || event.occurredAt <= filters.to);
+
+  return matchesSearch && matchesLevel && matchesStatus && matchesRange;
+}
+
+export function hasActiveRawEventFilters(
+  filters: Pick<RawEventFilters, 'search' | 'level' | 'status'> & {
+    dateRange: DateRange | undefined;
+  },
+): boolean {
+  return (
+    filters.search.trim() !== '' ||
+    filters.level !== ALL_RAW_EVENTS_FILTER ||
+    filters.status !== ALL_RAW_EVENTS_FILTER ||
+    Boolean(filters.dateRange?.from)
+  );
+}
+
+// ── Runs ─────────────────────────────────────────────────────────
 
 const timeFormatter = new Intl.DateTimeFormat('en-GB', {
   hour: '2-digit',

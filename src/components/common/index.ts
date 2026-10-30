@@ -9,4 +9,5 @@ export { PasswordInput } from './PasswordInput';
 export { CopyField } from './CopyField';
 export { CopyTextBlock } from './CopyTextBlock';
 export { ReadOnlyInput } from './ReadOnlyInput';
+export { DateRangeFilter } from './DateRangeFilter';
 export type * from './types';
