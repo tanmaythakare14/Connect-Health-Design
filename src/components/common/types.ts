@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps, FormEvent, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import type { TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -35,6 +35,15 @@ export interface ConfirmDialogProps {
   onConfirm: () => void | Promise<void>;
   /** Shown inside the dialog if `onConfirm` rejects */
   errorMessage?: string;
+  /** Icon before the confirm label, e.g. Trash for a delete */
+  confirmIcon?: LucideIcon;
+  /** Amber callout under the description spelling out the consequences */
+  warning?: { title: string; description: ReactNode };
+  /**
+   * Type-to-confirm: the confirm button stays disabled until the user types
+   * this exact text, e.g. the username being deleted.
+   */
+  confirmationText?: string;
 }
 
 export interface SuccessDialogAction {
@@ -93,6 +102,86 @@ export interface DateRangeFilterProps {
   /** Trigger label when no range is applied, e.g. "All time" */
   placeholder?: string;
   disabled?: boolean;
+}
+
+export interface CopyIconButtonProps {
+  /** Text copied to the clipboard */
+  value: string;
+  /** What's being copied, for the button's accessible name, e.g. "Customer ID" */
+  label: string;
+}
+
+export interface FormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: ReactNode;
+  /** Wire to react-hook-form's handleSubmit */
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  submitLabel: string;
+  /** Shown on the submit button while submitting, e.g. "Generating…" */
+  pendingLabel?: string;
+  /** Leading icon on the submit button */
+  submitIcon?: LucideIcon;
+  cancelLabel?: string;
+  isSubmitting: boolean;
+  /** Submit stays disabled until the form's required fields are filled */
+  canSubmit: boolean;
+  /** Inline error under the fields, e.g. when the save failed */
+  error?: string | null;
+  /** Tailwind max-width for the dialog, e.g. "sm:max-w-lg" */
+  className?: string;
+  children: ReactNode;
+}
+
+/** One column of a DataTable: its header and how to render a row's cell. */
+export interface DataTableColumn<TRow> {
+  key: string;
+  header: ReactNode;
+  cell: (row: TRow) => ReactNode;
+  /** Width and alignment, e.g. "w-40" or "w-24 text-right" */
+  headClassName?: string;
+  cellClassName?: string;
+  /** Width of this column's loading placeholder, e.g. "w-24" */
+  skeletonClassName?: string;
+}
+
+export interface DataTableProps<TRow> {
+  columns: Array<DataTableColumn<TRow>>;
+  rows: TRow[];
+  getRowKey: (row: TRow) => string;
+  isLoading?: boolean;
+  skeletonRowCount?: number;
+  /** Shown in place of rows when not loading and there are none */
+  emptyState?: ReactNode;
+  /** Pinned below the rows inside the card, e.g. pagination */
+  footer?: ReactNode;
+  /** Extra classes for one row, e.g. to highlight a new one */
+  rowClassName?: (row: TRow) => string | undefined;
+  /** Names the table for screen readers */
+  ariaLabel?: string;
+}
+
+/** One entry in a SideNavPanel. */
+export interface SideNavPanelItemConfig<TId extends string = string> {
+  id: TId;
+  label: string;
+  icon: LucideIcon;
+}
+
+export interface SideNavPanelProps<TId extends string = string> {
+  items: Array<SideNavPanelItemConfig<TId>>;
+  activeId: TId;
+  onSelect: (id: TId) => void;
+  /** Names the navigation landmark, e.g. "Settings" */
+  ariaLabel: string;
+  className?: string;
+}
+
+export interface SideNavPanelItemProps<TId extends string = string> {
+  item: SideNavPanelItemConfig<TId>;
+  isActive: boolean;
+  onSelect: (id: TId) => void;
 }
 
 export interface EmptyStateProps {

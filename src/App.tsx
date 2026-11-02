@@ -7,6 +7,7 @@ import { ConnectionsScreen } from '@/modules/connections';
 import { DashboardScreen } from '@/modules/dashboard';
 import { LogsScreen, type LogTab } from '@/modules/logs';
 import { SignInScreen } from '@/modules/onboarding';
+import { SettingsScreen } from '@/modules/settings';
 import { WorkflowsScreen } from '@/modules/workflows';
 import { useAppSelector } from '@/store/hooks';
 import { selectTheme } from '@/store/slices/uiSlice';
@@ -65,6 +66,8 @@ function App(): JSX.Element {
             <WorkflowsScreen />
           ) : activePageId === 'logs' ? (
             <LogsScreen initialTab={logsInitialTab} />
+          ) : activePageId === 'settings' ? (
+            <SettingsScreen />
           ) : (
             // Placeholder until each page is designed
             <div className="p-6">

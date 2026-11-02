@@ -1,5 +1,6 @@
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import { LogOut } from 'lucide-react';
+import { ConfirmDialog } from '@/components/common';
 import {
   GET_STARTED_GUIDES,
   MAIN_NAV_ITEMS,
@@ -36,6 +37,7 @@ export function AppShell({
   const isCollapsed = useAppSelector(selectSidebarCollapsed);
   const theme = useAppSelector(selectTheme);
   const guidesAutoOpenDisabled = useAppSelector(selectGuidesAutoOpenDisabled);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   return (
     // The shell is locked to the viewport: the page itself never scrolls, only
@@ -85,7 +87,7 @@ export function AppShell({
                 icon={LogOut}
                 label="Log out"
                 isCollapsed={isCollapsed}
-                onClick={onLogout}
+                onClick={() => setIsLogoutOpen(true)}
                 className="hover:bg-destructive/10 hover:text-destructive"
               />
             </>
@@ -96,6 +98,19 @@ export function AppShell({
           {children}
         </main>
       </div>
+
+      <ConfirmDialog
+        open={isLogoutOpen}
+        onOpenChange={setIsLogoutOpen}
+        destructive
+        title="Log out?"
+        description={`You’ll be signed out of ${PRODUCT_NAME}. Any unsaved changes on this page will be lost.`}
+        confirmLabel="Log out"
+        confirmIcon={LogOut}
+        pendingLabel="Logging out…"
+        onConfirm={onLogout}
+        errorMessage="We couldn’t log you out. Please try again."
+      />
     </div>
   );
 }
