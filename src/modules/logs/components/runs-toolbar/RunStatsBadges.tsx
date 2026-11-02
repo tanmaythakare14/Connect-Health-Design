@@ -5,7 +5,7 @@ import type { RunStatsBadgesProps } from '../../@types';
 const countFormatter = new Intl.NumberFormat('en-US');
 
 const CHIP_CLASS_NAME =
-  'inline-flex h-7 items-center gap-1 rounded-full border bg-muted/60 px-3 text-xs whitespace-nowrap text-muted-foreground';
+  'inline-flex h-7 items-center gap-1 rounded-md border bg-muted/60 px-2.5 text-xs whitespace-nowrap text-muted-foreground';
 
 /**
  * Last-24h run volume, plus how many runs need attention. The second chip

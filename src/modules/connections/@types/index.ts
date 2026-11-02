@@ -87,6 +87,9 @@ export interface ConnectionUsageBadgeProps {
   onInfo: () => void;
 }
 
+/** Row height: compact (dense lists), comfortable (default), spacious. */
+export type ConnectionTableDensity = 'compact' | 'comfortable' | 'spacious';
+
 export interface ConnectionTableProps {
   connections: Connection[];
   isLoading: boolean;
@@ -95,6 +98,13 @@ export interface ConnectionTableProps {
   emptyState: ReactNode;
   /** Pinned below the rows inside the card, e.g. pagination. */
   footer?: ReactNode;
+  /** Row height; defaults to "comfortable". */
+  density?: ConnectionTableDensity;
+  /**
+   * Stretch the card to fill its flex parent, with the footer pinned to the
+   * bottom — so the table uses the screen instead of leaving a gap below.
+   */
+  fillHeight?: boolean;
   onManage: (connection: Connection) => void;
   /** Flips an active connection to inactive and back (not shown for drafts). */
   onToggleActive: (connection: Connection) => void;
@@ -103,6 +113,8 @@ export interface ConnectionTableProps {
 
 export interface ConnectionTableRowProps {
   connection: Connection;
+  /** Cell classes for the table's density, shared with the skeleton rows */
+  cellClassName: string;
   onManage: (connection: Connection) => void;
   onToggleActive: (connection: Connection) => void;
   onTest: (connection: Connection) => void;

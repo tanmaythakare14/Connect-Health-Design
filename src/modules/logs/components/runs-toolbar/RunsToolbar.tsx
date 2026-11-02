@@ -60,7 +60,6 @@ export function RunsToolbar({
             className="bg-background pl-9"
           />
         </div>
-
         <Select
           value={workflowFilter}
           onValueChange={onWorkflowFilterChange}
@@ -83,7 +82,6 @@ export function RunsToolbar({
             ))}
           </SelectContent>
         </Select>
-
         <Select
           value={statusFilter}
           onValueChange={(value) => {
@@ -106,7 +104,6 @@ export function RunsToolbar({
             ))}
           </SelectContent>
         </Select>
-
         {stats && (
           <RunStatsBadges
             stats={stats}
@@ -120,7 +117,7 @@ export function RunsToolbar({
               )
             }
           />
-        )}
+        )}{' '}
       </div>
 
       <div className="flex items-center gap-2">

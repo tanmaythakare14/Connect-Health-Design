@@ -4,7 +4,8 @@ import { Toaster } from '@/components/ui/sonner';
 import { MAIN_NAV_ITEMS, SETTINGS_NAV_ITEM } from '@/config/navigation';
 import { useApplyTheme } from '@/hooks/useApplyTheme';
 import { ConnectionsScreen } from '@/modules/connections';
-import { LogsScreen } from '@/modules/logs';
+import { DashboardScreen } from '@/modules/dashboard';
+import { LogsScreen, type LogTab } from '@/modules/logs';
 import { SignInScreen } from '@/modules/onboarding';
 import { WorkflowsScreen } from '@/modules/workflows';
 import { useAppSelector } from '@/store/hooks';
@@ -21,8 +22,20 @@ function App(): JSX.Element {
   // MOCK: session and routing are local state until auth and a router are added.
   const [user, setUser] = useState<AppUser | null>(null);
   const [activePageId, setActivePageId] = useState(DEFAULT_PAGE_ID);
+  // Which Logs tab to open on: the dashboard's "View all logs" opens Audit.
+  const [logsInitialTab, setLogsInitialTab] = useState<LogTab>('application');
 
   const activePage = ALL_PAGES.find((page) => page.id === activePageId);
+
+  const handleNavigate = (pageId: string): void => {
+    setLogsInitialTab('application');
+    setActivePageId(pageId);
+  };
+
+  const handleViewLogs = (): void => {
+    setLogsInitialTab('audit');
+    setActivePageId('logs');
+  };
 
   const handleLogout = (): void => {
     setUser(null);
@@ -35,18 +48,23 @@ function App(): JSX.Element {
         <AppShell
           user={user}
           activeItemId={activePageId}
-          onNavigate={setActivePageId}
+          onNavigate={handleNavigate}
           onLogout={handleLogout}
           onStartGuide={(guideId) =>
             logger.info('Guide requested', { guideId })
           }
         >
-          {activePageId === 'connections' ? (
+          {activePageId === 'dashboard' ? (
+            <DashboardScreen
+              onViewConnections={() => handleNavigate('connections')}
+              onViewLogs={handleViewLogs}
+            />
+          ) : activePageId === 'connections' ? (
             <ConnectionsScreen />
           ) : activePageId === 'workflows' ? (
             <WorkflowsScreen />
           ) : activePageId === 'logs' ? (
-            <LogsScreen />
+            <LogsScreen initialTab={logsInitialTab} />
           ) : (
             // Placeholder until each page is designed
             <div className="p-6">

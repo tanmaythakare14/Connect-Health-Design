@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import type { ConnectionTableProps } from '../../@types';
-import { CELL_CLASS_NAME, CONNECTION_COLUMNS } from './columns';
+import { CONNECTION_COLUMNS, connectionCellVariants } from './columns';
 import { ConnectionTableRow } from './ConnectionTableRow';
 
 export function ConnectionTable({
@@ -19,12 +19,22 @@ export function ConnectionTable({
   skeletonRowCount,
   emptyState,
   footer,
+  density = 'comfortable',
+  fillHeight = false,
   onManage,
   onToggleActive,
   onTest,
 }: ConnectionTableProps): JSX.Element {
+  // Computed once so data rows and skeleton rows always share a height.
+  const cellClassName = connectionCellVariants({ density });
+
   return (
-    <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+    <div
+      className={cn(
+        'overflow-hidden rounded-lg border bg-card shadow-sm',
+        fillHeight && 'flex flex-1 flex-col',
+      )}
+    >
       <Table aria-busy={isLoading} className="table-fixed">
         <TableHeader className="bg-muted/40">
           <TableRow className="hover:bg-transparent">
@@ -33,7 +43,7 @@ export function ConnectionTable({
                 key={column.key}
                 scope="col"
                 className={cn(
-                  'h-10 px-4 text-xs font-medium tracking-wide text-muted-foreground uppercase',
+                  'h-11 px-4 text-xs font-medium tracking-wide text-muted-foreground uppercase',
                   column.headClassName,
                 )}
               >
@@ -48,7 +58,7 @@ export function ConnectionTable({
             Array.from({ length: skeletonRowCount }, (_, rowIndex) => (
               <TableRow key={rowIndex} className="hover:bg-transparent">
                 {CONNECTION_COLUMNS.map((column) => (
-                  <TableCell key={column.key} className={CELL_CLASS_NAME}>
+                  <TableCell key={column.key} className={cellClassName}>
                     <Skeleton
                       className={cn('h-5 bg-muted', column.skeletonClassName)}
                     />
@@ -73,6 +83,7 @@ export function ConnectionTable({
               <ConnectionTableRow
                 key={connection.id}
                 connection={connection}
+                cellClassName={cellClassName}
                 onManage={onManage}
                 onToggleActive={onToggleActive}
                 onTest={onTest}
@@ -81,7 +92,8 @@ export function ConnectionTable({
         </TableBody>
       </Table>
 
-      {footer && <div className="border-t">{footer}</div>}
+      {/* mt-auto pins the footer to the bottom when the card fills the screen */}
+      {footer && <div className="mt-auto border-t">{footer}</div>}
     </div>
   );
 }

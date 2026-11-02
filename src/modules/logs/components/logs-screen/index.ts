@@ -1,3 +1,4 @@
 export { LogsScreen } from './LogsScreen';
 export { ApplicationLogs } from './ApplicationLogs';
 export { LogsPlaceholder } from './LogsPlaceholder';
+export { LogTabBadges } from './LogTabBadges';

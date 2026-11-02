@@ -1,4 +1,6 @@
 import type {
+  AuditEventPageDto,
+  ListAuditEventsParams,
   ListNewRunsParams,
   ListRawEventsParams,
   ListRunsParams,
@@ -17,8 +19,13 @@ import {
   getMockRunWorkflows,
   spawnMockLiveRuns,
 } from '../mocks/runs';
+import { getMockAuditEvents } from '../mocks/auditEvents';
 import { getMockRawEvents } from '../mocks/rawEvents';
-import { matchesRawEventFilters, matchesRunFilters } from '../utils';
+import {
+  matchesAuditEventFilters,
+  matchesRawEventFilters,
+  matchesRunFilters,
+} from '../utils';
 
 const MOCK_LATENCY_MS = 400;
 /** Long enough to see refreshed runs as "Running" before they finish */
@@ -102,6 +109,30 @@ export async function listRawEvents(
     events: matching
       .slice(start, start + params.pageSize)
       .map((event) => ({ ...event })),
+    total: matching.length,
+  };
+}
+
+/**
+ * One page of the audit trail, newest first
+ * (GET /logs/audit?search&status&user&from&to&page&pageSize).
+ */
+export async function listAuditEvents(
+  params: ListAuditEventsParams,
+): Promise<AuditEventPageDto> {
+  await simulateLatency();
+  const matching = getMockAuditEvents().filter((event) =>
+    matchesAuditEventFilters(event, params),
+  );
+  const start = (params.page - 1) * params.pageSize;
+  return {
+    events: matching.slice(start, start + params.pageSize).map((event) => ({
+      ...event,
+      actor: { ...event.actor },
+      resource: { ...event.resource },
+      connection: event.connection ? { ...event.connection } : null,
+      metadata: { ...event.metadata },
+    })),
     total: matching.length,
   };
 }

@@ -90,7 +90,10 @@ export function DateRangeFilter({
             }
             className={cn(
               'justify-start bg-background font-normal',
-              appliedLabel && 'border-primary/40 pr-9 text-foreground',
+              // has-[>svg]: matches Button's icon padding rule, which would
+              // otherwise override pr-9 and run the text under the clear button.
+              appliedLabel &&
+                'border-primary/40 pr-9 text-foreground has-[>svg]:pr-9',
             )}
           >
             <CalendarDays aria-hidden className="text-muted-foreground" />

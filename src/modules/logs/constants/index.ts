@@ -1,4 +1,8 @@
 import type {
+  AuditAction,
+  AuditActorType,
+  AuditStatus,
+  AuditStatusFilter,
   RawEventLevel,
   RawEventLevelFilter,
   RawEventStatus,
@@ -107,3 +111,56 @@ export const RAW_EVENT_LEVEL_FILTER_OPTIONS: Array<{
 
 export const RAW_EVENT_PAGE_SIZE_OPTIONS = [10, 20, 50];
 export const DEFAULT_RAW_EVENT_PAGE_SIZE = 10;
+
+// ── Audit events ─────────────────────────────────────────────────
+
+export const AUDIT_ACTION = {
+  CREATE: 'C',
+  READ: 'R',
+  UPDATE: 'U',
+  DELETE: 'D',
+} as const;
+
+export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
+  C: 'Create',
+  R: 'Read',
+  U: 'Update',
+  D: 'Delete',
+};
+
+export const AUDIT_STATUS = {
+  SUCCESS: 'success',
+  FAILED: 'failed',
+  DENIED: 'denied',
+} as const;
+
+export const AUDIT_STATUS_LABELS: Record<AuditStatus, string> = {
+  success: 'Success',
+  failed: 'Failed',
+  denied: 'Denied',
+};
+
+export const AUDIT_ACTOR_TYPE = {
+  USER: 'user',
+  SERVICE: 'service',
+} as const;
+
+export const AUDIT_ACTOR_TYPE_LABELS: Record<AuditActorType, string> = {
+  user: 'User',
+  service: 'Service account',
+};
+
+export const ALL_AUDIT_STATUSES_FILTER = 'all';
+
+export const AUDIT_STATUS_FILTER_OPTIONS: Array<{
+  value: AuditStatusFilter;
+  label: string;
+}> = [
+  { value: ALL_AUDIT_STATUSES_FILTER, label: 'All statuses' },
+  { value: AUDIT_STATUS.SUCCESS, label: 'Success' },
+  { value: AUDIT_STATUS.FAILED, label: 'Failed' },
+  { value: AUDIT_STATUS.DENIED, label: 'Denied' },
+];
+
+export const AUDIT_EVENT_PAGE_SIZE_OPTIONS = [10, 20, 50];
+export const DEFAULT_AUDIT_EVENT_PAGE_SIZE = 10;

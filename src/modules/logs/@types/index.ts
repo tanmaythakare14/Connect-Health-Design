@@ -1,7 +1,13 @@
 import type { ReactNode } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import type {
+  ALL_AUDIT_STATUSES_FILTER,
   ALL_RAW_EVENTS_FILTER,
+  AUDIT_ACTION,
+  AUDIT_ACTOR_TYPE,
+  AUDIT_STATUS,
+  LOG_TABS,
   ALL_RUN_STATUSES_FILTER,
   ALL_WORKFLOWS_FILTER,
   RAW_EVENT_LEVEL,
@@ -298,6 +304,18 @@ export interface RunListFooterProps {
   onLoadMore: () => void;
 }
 
+export type LogTab = (typeof LOG_TABS)[keyof typeof LOG_TABS];
+
+export interface LogsScreenProps {
+  /** Tab to open on; defaults to Application */
+  initialTab?: LogTab;
+}
+
+export interface LogTabBadgesProps {
+  /** Which primary tab is showing — each has its own badges */
+  tab: LogTab;
+}
+
 export interface LogsPlaceholderProps {
   title: string;
   description: string;
@@ -411,4 +429,144 @@ export interface RawEventStatusBadgeProps {
 
 export interface RawEventLevelBadgeProps {
   level: RawEventLevel;
+}
+
+// ── Audit events ─────────────────────────────────────────────────
+
+/** C / R / U / D */
+export type AuditAction = (typeof AUDIT_ACTION)[keyof typeof AUDIT_ACTION];
+
+export type AuditStatus = (typeof AUDIT_STATUS)[keyof typeof AUDIT_STATUS];
+
+export type AuditStatusFilter = typeof ALL_AUDIT_STATUSES_FILTER | AuditStatus;
+
+export type AuditActorType =
+  (typeof AUDIT_ACTOR_TYPE)[keyof typeof AUDIT_ACTOR_TYPE];
+
+// DTO — one audit trail entry (currently mocks/auditEvents.ts)
+export interface AuditEventApiDto {
+  id: string;
+  /** ISO timestamp */
+  occurredAt: string;
+  actor: { id: string; name: string; type: AuditActorType };
+  /** Machine name, e.g. "workflow.list" */
+  eventType: string;
+  action: AuditAction;
+  /** Human summary, e.g. "All workflows listed" */
+  display: string;
+  resource: { name: string; type: string };
+  status: AuditStatus;
+  /** The connection the event touched, when there is one */
+  connection: { name: string; type: string } | null;
+  /** Instance that recorded the event */
+  source: string;
+  ipAddress: string;
+  /** Request context recorded with the event */
+  metadata: Record<string, string | number | boolean | null>;
+}
+
+export interface AuditEvent {
+  id: string;
+  occurredAt: string;
+  actorId: string;
+  actorName: string;
+  actorType: AuditActorType;
+  eventType: string;
+  action: AuditAction;
+  display: string;
+  resourceName: string;
+  resourceType: string;
+  status: AuditStatus;
+  connectionName: string | null;
+  connectionType: string | null;
+  source: string;
+  ipAddress: string;
+  /** Metadata pretty-printed as JSON for the detail view */
+  metadataJson: string;
+}
+
+export interface AuditEventFilters {
+  search: string;
+  status: AuditStatusFilter;
+  /** Matches the actor's name or ID; empty = everyone */
+  user: string;
+  /** ISO bounds, inclusive; null = open-ended */
+  from: string | null;
+  to: string | null;
+}
+
+export interface ListAuditEventsParams extends AuditEventFilters {
+  /** 1-based */
+  page: number;
+  pageSize: number;
+}
+
+export interface AuditEventPageDto {
+  events: AuditEventApiDto[];
+  /** Matching events across all pages */
+  total: number;
+}
+
+export type AuditEventListState =
+  | { status: 'loading' }
+  | { status: 'success'; events: AuditEvent[]; total: number }
+  | { status: 'error' };
+
+export interface AuditEventsToolbarProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  dateRange: DateRange | undefined;
+  onDateRangeChange: (range: DateRange | undefined) => void;
+  status: AuditStatusFilter;
+  onStatusChange: (value: AuditStatusFilter) => void;
+  user: string;
+  onUserChange: (value: string) => void;
+  isRefreshing: boolean;
+  onRefresh: () => void;
+  disabled?: boolean;
+}
+
+export interface AuditUserFilterProps {
+  /** The applied user search; empty = all users */
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+}
+
+export interface AuditEventTableProps {
+  events: AuditEvent[];
+  isLoading: boolean;
+  emptyState: ReactNode;
+  footer?: ReactNode;
+}
+
+export interface AuditEventRowProps {
+  event: AuditEvent;
+  isExpanded: boolean;
+  detailId: string;
+  onToggleExpanded: (event: AuditEvent) => void;
+}
+
+export interface AuditEventDetailRowProps {
+  event: AuditEvent;
+  id: string;
+}
+
+export interface AuditDetailListProps {
+  title: string;
+  icon: LucideIcon;
+  items: Array<{ label: string; value: string }>;
+}
+
+export interface AuditStatusBadgeProps {
+  status: AuditStatus;
+}
+
+export interface AuditActionBadgeProps {
+  action: AuditAction;
+}
+
+export interface AuditConnectionCellProps {
+  name: string | null;
+  type: string | null;
 }

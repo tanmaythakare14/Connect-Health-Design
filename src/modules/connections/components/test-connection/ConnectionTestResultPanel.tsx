@@ -47,7 +47,7 @@ export function ConnectionTestResultPanel({
   const renderBody = (): JSX.Element => {
     if (runState.status === 'idle') {
       return (
-        <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
+        <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-10 text-center">
           <span className="flex size-10 items-center justify-center rounded-full bg-accent text-primary">
             <FlaskConical className="size-5" aria-hidden />
           </span>
@@ -171,9 +171,10 @@ export function ConnectionTestResultPanel({
   };
 
   return (
+    // flex-1 lets the card fill the rest of the screen below the setup card.
     <section
       aria-labelledby="connection-test-results-heading"
-      className="rounded-xl border bg-card"
+      className="flex flex-1 flex-col rounded-xl border bg-card"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
         <div className="flex items-center gap-2">
@@ -226,7 +227,9 @@ export function ConnectionTestResultPanel({
         )}
       </div>
 
-      <div aria-live="polite">{renderBody()}</div>
+      <div aria-live="polite" className="flex-1">
+        {renderBody()}
+      </div>
     </section>
   );
 }

@@ -1,11 +1,19 @@
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import { LineTabsList, LineTabsTrigger } from '@/components/common';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
+import type { LogsScreenProps, LogTab } from '../../@types';
 import { LOG_TABS } from '../../constants';
+import { isLogTab } from '../../utils';
+import { AuditEventsPanel } from '../audit-events-panel';
 import { ApplicationLogs } from './ApplicationLogs';
-import { LogsPlaceholder } from './LogsPlaceholder';
+import { LogTabBadges } from './LogTabBadges';
 
-export function LogsScreen(): JSX.Element {
+export function LogsScreen({
+  initialTab = LOG_TABS.APPLICATION,
+}: LogsScreenProps): JSX.Element {
+  // Controlled so the tab row can show the active tab's badges.
+  const [activeTab, setActiveTab] = useState<LogTab>(initialTab);
+
   return (
     <div className="space-y-6 p-6">
       <div className="space-y-1">
@@ -17,22 +25,32 @@ export function LogsScreen(): JSX.Element {
         </p>
       </div>
 
-      <Tabs defaultValue={LOG_TABS.APPLICATION} className="gap-5">
-        <LineTabsList aria-label="Log type">
-          <LineTabsTrigger value={LOG_TABS.APPLICATION}>
-            Application
-          </LineTabsTrigger>
-          <LineTabsTrigger value={LOG_TABS.AUDIT}>Audit</LineTabsTrigger>
-        </LineTabsList>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          if (isLogTab(value)) setActiveTab(value);
+        }}
+        className="gap-5"
+      >
+        {/* The row owns the divider so the badges sit on the same line as the
+            tabs; on narrow screens they wrap under them. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b">
+          <LineTabsList aria-label="Log type" className="w-auto border-b-0">
+            <LineTabsTrigger value={LOG_TABS.APPLICATION}>
+              Application
+            </LineTabsTrigger>
+            <LineTabsTrigger value={LOG_TABS.AUDIT}>Audit</LineTabsTrigger>
+          </LineTabsList>
+          <div className="pb-2 sm:pb-0">
+            <LogTabBadges tab={activeTab} />
+          </div>
+        </div>
 
         <TabsContent value={LOG_TABS.APPLICATION}>
           <ApplicationLogs />
         </TabsContent>
         <TabsContent value={LOG_TABS.AUDIT}>
-          <LogsPlaceholder
-            title="Audit logs are on the way"
-            description="The audit trail hasn’t been designed yet."
-          />
+          <AuditEventsPanel />
         </TabsContent>
       </Tabs>
     </div>

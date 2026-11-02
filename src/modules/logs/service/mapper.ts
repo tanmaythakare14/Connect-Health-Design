@@ -1,4 +1,6 @@
 import type {
+  AuditEvent,
+  AuditEventApiDto,
   RawEvent,
   RawEventApiDto,
   Run,
@@ -86,5 +88,26 @@ export function apiDtoToRawEvent(dto: RawEventApiDto): RawEvent {
     source: dto.source,
     message: dto.message,
     correlationId: dto.correlationId,
+  };
+}
+
+export function apiDtoToAuditEvent(dto: AuditEventApiDto): AuditEvent {
+  return {
+    id: dto.id,
+    occurredAt: dto.occurredAt,
+    actorId: dto.actor.id,
+    actorName: dto.actor.name,
+    actorType: dto.actor.type,
+    eventType: dto.eventType,
+    action: dto.action,
+    display: dto.display,
+    resourceName: dto.resource.name,
+    resourceType: dto.resource.type,
+    status: dto.status,
+    connectionName: dto.connection?.name ?? null,
+    connectionType: dto.connection?.type ?? null,
+    source: dto.source,
+    ipAddress: dto.ipAddress,
+    metadataJson: JSON.stringify(dto.metadata, null, 2),
   };
 }

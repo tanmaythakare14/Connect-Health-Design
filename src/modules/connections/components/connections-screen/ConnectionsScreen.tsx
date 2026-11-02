@@ -287,7 +287,8 @@ export function ConnectionsScreen(): JSX.Element {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    // Fills the content area so the table can stretch to the bottom.
+    <div className="flex min-h-full flex-col gap-6 p-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           Connections
@@ -297,7 +298,7 @@ export function ConnectionsScreen(): JSX.Element {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex flex-1 flex-col gap-4">
         <ConnectionToolbar
           search={search}
           onSearchChange={handleSearchChange}
@@ -320,6 +321,8 @@ export function ConnectionsScreen(): JSX.Element {
           connections={pageConnections}
           isLoading={listState.status === 'loading'}
           skeletonRowCount={DEFAULT_PAGE_SIZE}
+          density="spacious"
+          fillHeight
           emptyState={renderEmptyState()}
           onManage={handleManage}
           onToggleActive={handleToggleActive}

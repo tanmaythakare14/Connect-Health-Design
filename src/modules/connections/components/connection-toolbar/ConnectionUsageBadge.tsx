@@ -10,7 +10,7 @@ export function ConnectionUsageBadge({
   return (
     <Badge
       variant="outline"
-      className="h-7 gap-1 rounded-full border-border bg-muted/60 px-3 text-xs font-normal text-muted-foreground"
+      className="h-7 gap-1 rounded-md border-border bg-muted/60 px-2.5 text-xs font-normal text-muted-foreground"
     >
       <span>
         <span className="font-semibold text-foreground">{usage.used}</span> of{' '}

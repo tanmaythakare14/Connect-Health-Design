@@ -1,3 +1,5 @@
+import { cva } from 'class-variance-authority';
+
 /**
  * Shared column layout so the header, data rows and skeleton rows line up.
  * The table uses a fixed layout, so every column gets an equal share of the width.
@@ -46,4 +48,16 @@ export const CONNECTION_COLUMNS: Array<{
   },
 ];
 
-export const CELL_CLASS_NAME = 'px-4 py-2.5';
+/**
+ * Cell padding per density — the only thing that sets a row's height.
+ * The default density lives on ConnectionTable's `density` prop.
+ */
+export const connectionCellVariants = cva('px-4', {
+  variants: {
+    density: {
+      compact: 'py-2.5',
+      comfortable: 'py-3.5',
+      spacious: 'py-5',
+    },
+  },
+});

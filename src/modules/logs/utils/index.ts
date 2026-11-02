@@ -1,5 +1,9 @@
 import type { DateRange } from 'react-day-picker';
 import type {
+  AuditEventApiDto,
+  AuditEventFilters,
+  AuditStatusFilter,
+  LogTab,
   RawEventApiDto,
   RawEventFilters,
   RawEventLevelFilter,
@@ -11,10 +15,13 @@ import type {
   RunStep,
 } from '../@types';
 import {
+  ALL_AUDIT_STATUSES_FILTER,
   ALL_RAW_EVENTS_FILTER,
+  AUDIT_STATUS_FILTER_OPTIONS,
   ALL_RUN_STATUSES_FILTER,
   ALL_WORKFLOWS_FILTER,
   INSTANT_STEP_MAX_MS,
+  LOG_TABS,
   RAW_EVENT_LEVEL_FILTER_OPTIONS,
   RAW_EVENT_STATUS_FILTER_OPTIONS,
   RUN_STATUS,
@@ -232,4 +239,57 @@ export function groupRunsByWorkflow(runs: Run[]): RunGroup[] {
     groups.set(run.workflowId, group);
   }
   return [...groups.values()];
+}
+
+// ── Audit events ─────────────────────────────────────────────────
+
+export function isAuditStatusFilter(value: string): value is AuditStatusFilter {
+  return AUDIT_STATUS_FILTER_OPTIONS.some((option) => option.value === value);
+}
+
+/**
+ * Search matches what happened, the resource, the event ID or the correlation
+ * ID; the user filter matches the actor's name or ID.
+ */
+export function matchesAuditEventFilters(
+  event: AuditEventApiDto,
+  filters: AuditEventFilters,
+): boolean {
+  const query = filters.search.trim().toLowerCase();
+  const correlationId = String(event.metadata.correlationId ?? '');
+  const matchesSearch =
+    query === '' ||
+    [event.display, event.resource.name, event.id, correlationId].some(
+      (field) => field.toLowerCase().includes(query),
+    );
+  const user = filters.user.trim().toLowerCase();
+  const matchesUser =
+    user === '' ||
+    event.actor.name.toLowerCase().includes(user) ||
+    event.actor.id.toLowerCase().includes(user);
+  const matchesStatus =
+    filters.status === ALL_AUDIT_STATUSES_FILTER ||
+    event.status === filters.status;
+  const matchesRange =
+    (filters.from === null || event.occurredAt >= filters.from) &&
+    (filters.to === null || event.occurredAt <= filters.to);
+
+  return matchesSearch && matchesUser && matchesStatus && matchesRange;
+}
+
+export function hasActiveAuditEventFilters(
+  filters: Pick<AuditEventFilters, 'search' | 'status' | 'user'> & {
+    dateRange: DateRange | undefined;
+  },
+): boolean {
+  return (
+    filters.search.trim() !== '' ||
+    filters.user.trim() !== '' ||
+    filters.status !== ALL_AUDIT_STATUSES_FILTER ||
+    Boolean(filters.dateRange?.from)
+  );
+}
+
+export function isLogTab(value: string): value is LogTab {
+  return Object.values<string>(LOG_TABS).includes(value);
 }

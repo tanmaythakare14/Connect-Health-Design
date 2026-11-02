@@ -86,7 +86,8 @@ export function TestConnectionScreen({
   };
 
   return (
-    <div className="space-y-6 p-6">
+    // Fills the content area so the results card can stretch to the bottom.
+    <div className="flex min-h-full flex-col gap-6 p-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -120,82 +121,70 @@ export function TestConnectionScreen({
         </p>
       </div>
 
-      {/* Two halves on large screens: set up the test on the left, results on
-          the right. Stacks into one column below lg. */}
-      <div className="grid items-start gap-6 lg:grid-cols-2">
-        <div className="space-y-4">
-          <section
-            aria-labelledby="connection-test-config-heading"
-            className="rounded-xl border bg-card"
-          >
-            <div className="space-y-1 border-b px-5 py-4">
-              <h2
-                id="connection-test-config-heading"
-                className="text-sm font-semibold text-foreground"
-              >
-                Test configuration
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Checks backend service authentication with a signed JWT
-                assertion — no user interaction required.
-              </p>
-            </div>
+      {/* Full-width stack: set up the test, then the results fill the rest
+          of the screen below it. */}
+      <section
+        aria-labelledby="connection-test-config-heading"
+        className="rounded-xl border bg-card"
+      >
+        <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
+          <div className="min-w-0 space-y-1">
+            <h2
+              id="connection-test-config-heading"
+              className="text-sm font-semibold text-foreground"
+            >
+              Test configuration
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Checks backend service authentication with a signed JWT assertion
+              — no user interaction required.
+            </p>
+          </div>
 
-            <div className="p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <div className="min-w-0 flex-1 space-y-2">
-                  <Label htmlFor={API_KEY_SELECT_ID}>API key</Label>
-                  <ApiKeySelect
-                    id={API_KEY_SELECT_ID}
-                    listState={apiKeysState}
-                    value={selectedApiKeyId}
-                    onValueChange={setSelectedApiKeyId}
-                    onRetry={() => void loadApiKeys()}
-                    disabled={isRunning}
-                  />
-                </div>
-                <Button
-                  onClick={() => void handleRunTest()}
-                  disabled={!selectedApiKey || isRunning}
-                >
-                  {isRunning ? (
-                    <LoaderCircle className="animate-spin" aria-hidden />
-                  ) : (
-                    <Play aria-hidden />
-                  )}
-                  {isRunning ? 'Running test…' : 'Run connection test'}
-                </Button>
-              </div>
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end lg:w-auto lg:shrink-0">
+            <div className="min-w-0 flex-1 space-y-2 lg:w-80 lg:flex-none">
+              <Label htmlFor={API_KEY_SELECT_ID}>API key</Label>
+              <ApiKeySelect
+                id={API_KEY_SELECT_ID}
+                listState={apiKeysState}
+                value={selectedApiKeyId}
+                onValueChange={setSelectedApiKeyId}
+                onRetry={() => void loadApiKeys()}
+                disabled={isRunning}
+              />
             </div>
-          </section>
-
-          <section
-            aria-labelledby="connection-test-scope-heading"
-            className="flex items-start gap-3 rounded-xl border bg-muted/40 px-5 py-4"
-          >
-            <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-            <div className="space-y-1">
-              <h2
-                id="connection-test-scope-heading"
-                className="text-sm font-semibold text-foreground"
-              >
-                What we’re testing
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                We’ll validate your OAuth configuration, authenticate with the
-                health system, verify access token permissions, and confirm FHIR
-                API connectivity. Each step makes sure your integration is ready
-                for production use.
-              </p>
-            </div>
-          </section>
+            <Button
+              onClick={() => void handleRunTest()}
+              disabled={!selectedApiKey || isRunning}
+            >
+              {isRunning ? (
+                <LoaderCircle className="animate-spin" aria-hidden />
+              ) : (
+                <Play aria-hidden />
+              )}
+              {isRunning ? 'Running test…' : 'Run connection test'}
+            </Button>
+          </div>
         </div>
 
-        <ConnectionTestResultPanel
-          runState={runState}
-          onRetry={() => void handleRunTest()}
-        />
-      </div>
+        {/* What the test covers — a quiet footer strip, not a separate card */}
+        <div className="flex items-start gap-3 rounded-b-xl border-t bg-muted/40 px-5 py-3">
+          <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">
+              What we’re testing:
+            </span>{' '}
+            your OAuth configuration, authentication with the health system,
+            access token permissions and FHIR API connectivity — each step makes
+            sure your integration is ready for production use.
+          </p>
+        </div>
+      </section>
+
+      <ConnectionTestResultPanel
+        runState={runState}
+        onRetry={() => void handleRunTest()}
+      />
     </div>
   );
 }
