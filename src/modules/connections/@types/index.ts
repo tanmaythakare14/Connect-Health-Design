@@ -163,7 +163,7 @@ export interface EhrSystemApiDto {
   id: string;
   name: string;
   description: string;
-  /** Short mark shown in the logo tile until vendor logos are supplied */
+  /** Short mark shown when there's no vendor logo (see EHR_LOGOS) */
   monogram: string;
   capabilities: string[];
   availability: EhrAvailability;
@@ -186,6 +186,14 @@ export type EhrSystemListState =
 export interface AddConnectionScreenProps {
   onBack: () => void;
   onSelect: (ehrSystem: EhrSystem) => void;
+}
+
+export interface EhrLogoProps {
+  src: string;
+  /** The vendor's name; empty when a visible label sits next to the logo */
+  alt: string;
+  /** Chip size and padding, e.g. "h-8 px-2" */
+  className?: string;
 }
 
 export interface EhrSystemCardProps {

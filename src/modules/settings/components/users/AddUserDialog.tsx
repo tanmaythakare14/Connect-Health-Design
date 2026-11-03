@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { logger } from '@/utils/logger';
 import type { AddUserDialogProps } from '../../@types';
 import { USER_NAME_MAX_LENGTH, USERNAME_MAX_LENGTH } from '../../constants';
-import { PasswordRequirements } from './PasswordRequirements';
+import { PasswordRequirements } from '../shared';
 import { addUserSchema, type AddUserFormValues } from './schema';
 
 const DEFAULT_VALUES: AddUserFormValues = {

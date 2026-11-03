@@ -162,28 +162,6 @@ export interface DataTableProps<TRow> {
   ariaLabel?: string;
 }
 
-/** One entry in a SideNavPanel. */
-export interface SideNavPanelItemConfig<TId extends string = string> {
-  id: TId;
-  label: string;
-  icon: LucideIcon;
-}
-
-export interface SideNavPanelProps<TId extends string = string> {
-  items: Array<SideNavPanelItemConfig<TId>>;
-  activeId: TId;
-  onSelect: (id: TId) => void;
-  /** Names the navigation landmark, e.g. "Settings" */
-  ariaLabel: string;
-  className?: string;
-}
-
-export interface SideNavPanelItemProps<TId extends string = string> {
-  item: SideNavPanelItemConfig<TId>;
-  isActive: boolean;
-  onSelect: (id: TId) => void;
-}
-
 export interface EmptyStateProps {
   icon: LucideIcon;
   title: string;

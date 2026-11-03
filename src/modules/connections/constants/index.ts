@@ -223,3 +223,4 @@ export const EPIC_SCOPE_CATALOG: Array<{
 export const EPIC_AVAILABLE_SCOPE_COUNT = EPIC_SCOPE_CATALOG.flatMap(
   (catalog) => catalog.groups.flatMap((group) => group.scopes),
 ).length;
+export { EHR_LOGOS } from './ehrLogos';

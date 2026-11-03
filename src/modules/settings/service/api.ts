@@ -1,6 +1,7 @@
 import type {
   AdminUserApiDto,
   ApiKeyApiDto,
+  ChangePasswordPayload,
   ConnectionUsageApiDto,
   CreateAdminUserPayload,
   CreateApiKeyPayload,
@@ -18,7 +19,11 @@ import { MOCK_CONNECTION_USAGE } from '../mocks/connectionUsage';
 import { MOCK_GENERAL_SETTINGS } from '../mocks/generalSettings';
 import { applyMockLlmSave, MOCK_HELIX_AI_SETTINGS } from '../mocks/helixAi';
 import { MOCK_SUBSCRIPTION } from '../mocks/subscription';
-import { MOCK_ADMIN_USERS, MOCK_TWO_FACTOR_SETTINGS } from '../mocks/users';
+import {
+  MOCK_ADMIN_USERS,
+  MOCK_CURRENT_PASSWORD,
+  MOCK_TWO_FACTOR_SETTINGS,
+} from '../mocks/users';
 
 const MOCK_LATENCY_MS = 400;
 
@@ -210,4 +215,22 @@ export async function deleteAdminUser(id: string): Promise<void> {
     throw new Error(`Can't delete user: ${id}`);
   }
   MOCK_ADMIN_USERS.splice(index, 1);
+}
+
+/** The current password didn't match; the form shows it on that field. */
+export class IncorrectCurrentPasswordError extends Error {
+  constructor() {
+    super('Current password is incorrect');
+    this.name = 'IncorrectCurrentPasswordError';
+  }
+}
+
+/** Change the signed-in user's password (POST /settings/account/password). */
+export async function changePassword(
+  payload: ChangePasswordPayload,
+): Promise<void> {
+  await simulateLatency();
+  if (payload.currentPassword !== MOCK_CURRENT_PASSWORD) {
+    throw new IncorrectCurrentPasswordError();
+  }
 }

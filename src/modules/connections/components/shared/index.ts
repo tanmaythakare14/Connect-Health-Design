@@ -1,0 +1,1 @@
+export { EhrLogo } from './EhrLogo';

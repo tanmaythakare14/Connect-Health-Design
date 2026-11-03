@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { logger } from '@/utils/logger';
 import type { ResetUserPasswordDialogProps } from '../../@types';
-import { PasswordRequirements } from './PasswordRequirements';
+import { PasswordRequirements } from '../shared';
 import {
   resetUserPasswordSchema,
   type ResetUserPasswordFormValues,

@@ -12,7 +12,7 @@ import type { UsageFilterBarProps } from '../../../@types';
 import { USAGE_FILTER_OPTIONS } from '../../../constants';
 import { isUsageFilter } from '../../../utils';
 
-/** Search by connection or EHR, and narrow by how connections count. */
+/** Search by connection name, and narrow by how connections count. */
 export function UsageFilterBar({
   search,
   onSearchChange,
@@ -30,8 +30,8 @@ export function UsageFilterBar({
           type="search"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Filter connections…"
-          aria-label="Filter connections by name, EHR or organization"
+          placeholder="Search by connection name"
+          aria-label="Search by connection name"
           className="bg-background pl-9"
         />
       </div>

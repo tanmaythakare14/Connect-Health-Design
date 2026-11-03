@@ -17,7 +17,6 @@ import {
 } from '../../service';
 import { getSettingsSection } from '../../utils';
 import { SettingsCallout, SettingsPageHeader } from '../shared';
-import { EditLlmProviderDialog } from './EditLlmProviderDialog';
 import { HelixAgentCard } from './HelixAgentCard';
 import { LlmProviderCard } from './LlmProviderCard';
 
@@ -27,7 +26,7 @@ export function HelixAiSettings(): JSX.Element {
     status: 'loading',
   });
   const [isSavingEnabled, setIsSavingEnabled] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const loadSettings = useCallback(async (): Promise<void> => {
     setState({ status: 'loading' });
@@ -74,7 +73,7 @@ export function HelixAiSettings(): JSX.Element {
     }
   };
 
-  // Rejections propagate so the dialog can show its inline error.
+  // Rejections propagate so the form can show its inline error.
   const handleSaveLlmConfig = async (
     values: LlmConfigFormValues,
   ): Promise<void> => {
@@ -86,7 +85,7 @@ export function HelixAiSettings(): JSX.Element {
         ? { ...current, data: { ...current.data, llm } }
         : current,
     );
-    setIsEditOpen(false);
+    setIsEditing(false);
     toast.success('Helix configuration saved');
   };
 
@@ -133,13 +132,9 @@ export function HelixAiSettings(): JSX.Element {
         <LlmProviderCard
           config={data.llm}
           isHelixEnabled={data.isEnabled}
-          onEdit={() => setIsEditOpen(true)}
-        />
-        <EditLlmProviderDialog
-          key={data.llm.updatedAt}
-          open={isEditOpen}
-          onOpenChange={setIsEditOpen}
-          config={data.llm}
+          isEditing={isEditing}
+          onEdit={() => setIsEditing(true)}
+          onCancelEdit={() => setIsEditing(false)}
           onSave={handleSaveLlmConfig}
         />
       </div>

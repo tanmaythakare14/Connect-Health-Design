@@ -3,3 +3,4 @@ export { SettingsPlaceholder } from './SettingsPlaceholder';
 export { SettingsCard } from './SettingsCard';
 export { StatusPill } from './StatusPill';
 export { SettingsCallout } from './SettingsCallout';
+export { PasswordRequirements } from './PasswordRequirements';

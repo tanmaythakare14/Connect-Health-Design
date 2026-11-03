@@ -1,14 +1,24 @@
 import { useCallback, useEffect, useState, type JSX } from 'react';
-import { CircleAlert, CircleCheck, Layers, SearchX } from 'lucide-react';
+import { Cable, CircleAlert, CircleCheck, Layers, SearchX } from 'lucide-react';
 import { toast } from 'sonner';
 import { EmptyState } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  apiDtoToConnection,
+  listConnections,
+  type Connection,
+} from '@/modules/connections';
 import { logger } from '@/utils/logger';
-import type { ConnectionUsageState, UsageFilter } from '../../../@types';
+import type {
+  ConnectionUsageState,
+  UsageFilter,
+  UsageSlot,
+} from '../../../@types';
 import { USAGE_FILTER } from '../../../constants';
 import { apiDtoToConnectionUsage, getConnectionUsage } from '../../../service';
-import { filterUsageSlots } from '../../../utils';
+import { filterConnectionsByName, filterUsageSlots } from '../../../utils';
+import { AllConnectionsTable } from './AllConnectionsTable';
 import { ConnectionUsageHeaderActions } from './ConnectionUsageHeaderActions';
 import { CountingRulesDisclosure } from './CountingRulesDisclosure';
 import { SlotCard } from './SlotCard';
@@ -18,9 +28,22 @@ import { UsageStatTiles } from './UsageStatTiles';
 
 const BODY_ID = 'connection-usage-body';
 
+/** Plan usage plus the Connections screen's list, fetched together. */
+async function fetchUsage(): Promise<ConnectionUsageState> {
+  const [usageDto, connectionDtos] = await Promise.all([
+    getConnectionUsage(),
+    listConnections(),
+  ]);
+  return {
+    status: 'success',
+    data: apiDtoToConnectionUsage(usageDto),
+    connections: connectionDtos.map(apiDtoToConnection),
+  };
+}
+
 /**
  * Collapsible "Connection usage": headline numbers, the counting rules, a
- * filter, then every slot in use.
+ * filter, then every connection — or just the slots in use.
  */
 export function ConnectionUsageSection(): JSX.Element {
   const [state, setState] = useState<ConnectionUsageState>({
@@ -35,8 +58,7 @@ export function ConnectionUsageSection(): JSX.Element {
   const loadUsage = useCallback(async (): Promise<void> => {
     setState({ status: 'loading' });
     try {
-      const dto = await getConnectionUsage();
-      setState({ status: 'success', data: apiDtoToConnectionUsage(dto) });
+      setState(await fetchUsage());
     } catch (error) {
       logger.error('Loading connection usage failed', { error });
       setState({ status: 'error' });
@@ -51,8 +73,7 @@ export function ConnectionUsageSection(): JSX.Element {
   const handleRefresh = async (): Promise<void> => {
     setIsRefreshing(true);
     try {
-      const dto = await getConnectionUsage();
-      setState({ status: 'success', data: apiDtoToConnectionUsage(dto) });
+      setState(await fetchUsage());
       toast.success('Connection usage is up to date');
     } catch (error) {
       logger.error('Refreshing connection usage failed', { error });
@@ -62,6 +83,79 @@ export function ConnectionUsageSection(): JSX.Element {
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const clearFilters = (): void => {
+    setSearch('');
+    setFilter(USAGE_FILTER.ALL);
+  };
+
+  const noMatchesState = (
+    <EmptyState
+      icon={SearchX}
+      title="No connections match"
+      description="Try a different connection name or filter."
+      action={
+        <Button variant="outline" size="sm" onClick={clearFilters}>
+          Clear filters
+        </Button>
+      }
+    />
+  );
+
+  const renderAllConnections = (connections: Connection[]): JSX.Element => {
+    const matches = filterConnectionsByName(connections, search);
+    return (
+      <div className="space-y-3">
+        <UsageGroupHeading
+          icon={Cable}
+          title="All connections"
+          count={matches.length}
+        />
+        <AllConnectionsTable
+          connections={matches}
+          emptyState={
+            search.trim() === '' ? (
+              <EmptyState
+                icon={Cable}
+                title="No connections yet"
+                description="Connections you add on the Connections screen show up here."
+              />
+            ) : (
+              noMatchesState
+            )
+          }
+        />
+      </div>
+    );
+  };
+
+  const renderSlots = (allSlots: UsageSlot[]): JSX.Element => {
+    const slots = filterUsageSlots(allSlots, search, filter);
+
+    if (slots.length === 0) {
+      return (
+        <div className="rounded-xl border border-dashed">{noMatchesState}</div>
+      );
+    }
+    return (
+      <div className="space-y-3">
+        <UsageGroupHeading
+          icon={CircleCheck}
+          title={
+            filter === USAGE_FILTER.SHARED_SLOT
+              ? 'Sharing a slot'
+              : 'Using a slot'
+          }
+          count={slots.length}
+        />
+        <ul className="space-y-3">
+          {slots.map((slot) => (
+            <SlotCard key={slot.id} slot={slot} />
+          ))}
+        </ul>
+      </div>
+    );
   };
 
   const renderBody = (): JSX.Element => {
@@ -101,12 +195,9 @@ export function ConnectionUsageSection(): JSX.Element {
       );
     }
 
-    const { data } = state;
-    const slots = filterUsageSlots(data.slots, search, filter);
-
     return (
       <div className="space-y-5">
-        <UsageStatTiles usage={data} />
+        <UsageStatTiles usage={state.data} />
         <CountingRulesDisclosure />
         <UsageFilterBar
           search={search}
@@ -114,43 +205,9 @@ export function ConnectionUsageSection(): JSX.Element {
           filter={filter}
           onFilterChange={setFilter}
         />
-
-        {slots.length === 0 && (
-          <div className="rounded-xl border border-dashed">
-            <EmptyState
-              icon={SearchX}
-              title="No connections match"
-              description="Try a different name, EHR or filter."
-              action={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSearch('');
-                    setFilter(USAGE_FILTER.ALL);
-                  }}
-                >
-                  Clear filters
-                </Button>
-              }
-            />
-          </div>
-        )}
-
-        {slots.length > 0 && (
-          <div className="space-y-3">
-            <UsageGroupHeading
-              icon={CircleCheck}
-              title="Using a slot"
-              count={slots.length}
-            />
-            <ul className="space-y-3">
-              {slots.map((slot) => (
-                <SlotCard key={slot.id} slot={slot} />
-              ))}
-            </ul>
-          </div>
-        )}
+        {filter === USAGE_FILTER.ALL
+          ? renderAllConnections(state.connections)
+          : renderSlots(state.data.slots)}
       </div>
     );
   };

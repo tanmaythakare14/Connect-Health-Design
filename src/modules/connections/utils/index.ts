@@ -12,6 +12,7 @@ import {
   CONNECTION_SOURCE_LABELS,
   CONNECTION_STATUS,
   CONNECTION_TYPE,
+  EHR_LOGOS,
   SIGNING_KEY_TYPE_OPTIONS,
 } from '../constants';
 
@@ -103,4 +104,9 @@ export function filterEhrSystems(
       (value) => value.toLowerCase().includes(query),
     ),
   );
+}
+
+/** The vendor wordmark for an EHR or connection source, if we have one. */
+export function getEhrLogo(id: string): string | undefined {
+  return EHR_LOGOS[id];
 }

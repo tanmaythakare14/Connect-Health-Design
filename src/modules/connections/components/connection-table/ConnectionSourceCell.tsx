@@ -1,13 +1,25 @@
 import type { JSX } from 'react';
 import type { ConnectionSourceCellProps } from '../../@types';
 import { CONNECTION_SOURCE_LABELS } from '../../constants';
+import { getEhrLogo } from '../../utils';
+import { EhrLogo } from '../shared';
 
 export function ConnectionSourceCell({
   source,
 }: ConnectionSourceCellProps): JSX.Element {
   const label = CONNECTION_SOURCE_LABELS[source];
+  const logo = getEhrLogo(source);
 
-  // Monogram tile stands in for vendor logos until those assets are supplied.
+  // The wordmark carries the name; alt and title keep it readable and hoverable.
+  if (logo) {
+    return (
+      <span title={label} className="inline-flex">
+        <EhrLogo src={logo} alt={label} className="h-8 max-w-32 px-2 py-1.5" />
+      </span>
+    );
+  }
+
+  // Monogram tile for sources without a logo yet.
   return (
     <div className="flex items-center gap-2.5">
       <span

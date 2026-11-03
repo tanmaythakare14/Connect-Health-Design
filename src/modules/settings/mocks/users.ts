@@ -41,3 +41,6 @@ export const MOCK_TWO_FACTOR_SETTINGS: TwoFactorSettingsApiDto = {
   isEnrolled: true,
   requireOnLogin: false,
 };
+
+/** MOCK: the signed-in user's current password, so the form can be tried out. */
+export const MOCK_CURRENT_PASSWORD = 'Admin@123';

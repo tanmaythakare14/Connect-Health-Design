@@ -100,3 +100,21 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 }
+
+/*
+ * Browser autofill paints inputs light blue with dark text, which clashes with
+ * the theme (worst in dark mode). The UA background can't be overridden
+ * directly, so its transition is delayed indefinitely; the text keeps our
+ * colors. Unlayered + !important so it beats the input's transition utility.
+ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--color-foreground);
+  caret-color: var(--color-foreground);
+  transition:
+    background-color 600000s 0s,
+    color 600000s 0s,
+    box-shadow 150ms !important;
+}

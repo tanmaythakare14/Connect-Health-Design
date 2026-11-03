@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type JSX } from 'react';
-import { CircleAlert, KeyRound, Trash2, UserPlus, Users } from 'lucide-react';
+import { CircleAlert, Trash2, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog, EmptyState } from '@/components/common';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,6 @@ import type {
   AddUserFormValues,
   AdminUser,
   AdminUserListState,
-  ResetUserPasswordFormValues,
   TwoFactorSettingsState,
 } from '../../@types';
 import { NEW_USER_HIGHLIGHT_MS, SETTINGS_SECTION } from '../../constants';
@@ -18,17 +17,14 @@ import {
   createAdminUser,
   deleteAdminUser,
   formValuesToCreateAdminUserPayload,
-  formValuesToResetUserPasswordPayload,
   getTwoFactorSettings,
   listAdminUsers,
-  resetAdminUserPassword,
   resetTwoFactor,
   updateRequireTwoFactor,
 } from '../../service';
 import { getSettingsSection } from '../../utils';
 import { SettingsPageHeader } from '../shared';
 import { AddUserDialog } from './AddUserDialog';
-import { ResetUserPasswordDialog } from './ResetUserPasswordDialog';
 import { TwoFactorCard } from './TwoFactorCard';
 import { UserTable } from './UserTable';
 
@@ -36,7 +32,7 @@ const NO_NEW_USERS: ReadonlySet<string> = new Set();
 
 const displayNameOf = (user: AdminUser): string => user.name ?? user.username;
 
-/** Settings → Users: your 2FA, plus adding, resetting and removing admins. */
+/** Settings → Users: your 2FA, plus adding and removing admins. */
 export function UserSettings(): JSX.Element {
   const [twoFactorState, setTwoFactorState] = useState<TwoFactorSettingsState>({
     status: 'loading',
@@ -50,7 +46,6 @@ export function UserSettings(): JSX.Element {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newUserIds, setNewUserIds] =
     useState<ReadonlySet<string>>(NO_NEW_USERS);
-  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
   // Stays set after close so the dialog text doesn't vanish mid-animation.
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -149,25 +144,6 @@ export function UserSettings(): JSX.Element {
     });
   };
 
-  // Rejections propagate so the dialog can show its inline error.
-  const handleResetPassword = async (
-    values: ResetUserPasswordFormValues,
-  ): Promise<void> => {
-    const updated = apiDtoToAdminUser(
-      await resetAdminUserPassword(
-        values.userId,
-        formValuesToResetUserPasswordPayload(values),
-      ),
-    );
-    updateUsers((users) =>
-      users.map((user) => (user.id === updated.id ? updated : user)),
-    );
-    setIsResetPasswordOpen(false);
-    toast.success('Password reset', {
-      description: `Share the new temporary password with “${displayNameOf(updated)}” securely.`,
-    });
-  };
-
   const handleDelete = (user: AdminUser): void => {
     setDeleteTarget(user);
     setIsDeleteOpen(true);
@@ -190,20 +166,10 @@ export function UserSettings(): JSX.Element {
       <SettingsPageHeader
         section={getSettingsSection(SETTINGS_SECTION.USERS)}
         actions={
-          <>
-            <Button
-              variant="outline"
-              onClick={() => setIsResetPasswordOpen(true)}
-              disabled={users.length === 0}
-            >
-              <KeyRound aria-hidden />
-              Reset password
-            </Button>
-            <Button onClick={() => setIsAddOpen(true)}>
-              <UserPlus aria-hidden />
-              Add user
-            </Button>
-          </>
+          <Button onClick={() => setIsAddOpen(true)}>
+            <UserPlus aria-hidden />
+            Add user
+          </Button>
         }
       />
 
@@ -278,13 +244,6 @@ export function UserSettings(): JSX.Element {
         open={isAddOpen}
         onOpenChange={setIsAddOpen}
         onAdd={handleAdd}
-      />
-
-      <ResetUserPasswordDialog
-        open={isResetPasswordOpen}
-        onOpenChange={setIsResetPasswordOpen}
-        users={users}
-        onReset={handleResetPassword}
       />
 
       <ConfirmDialog

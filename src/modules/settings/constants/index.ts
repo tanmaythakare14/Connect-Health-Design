@@ -1,6 +1,7 @@
 import {
   CreditCard,
   KeyRound,
+  LockKeyhole,
   SlidersHorizontal,
   Sparkles,
   Users,
@@ -20,6 +21,7 @@ export const SETTINGS_SECTION = {
   SUBSCRIPTION: 'subscription',
   HELIX_AI: 'helix-ai',
   USERS: 'users',
+  CHANGE_PASSWORD: 'change-password',
 } as const;
 
 /** Side menu order; General opens by default. */
@@ -57,6 +59,13 @@ export const SETTINGS_SECTIONS: SettingsSectionConfig[] = [
     description:
       'Manage admin users who have access to the ConnectHealth management console',
     icon: Users,
+  },
+  {
+    id: SETTINGS_SECTION.CHANGE_PASSWORD,
+    label: 'Change Password',
+    description:
+      'Update the password you use to sign in to the ConnectHealth management console',
+    icon: LockKeyhole,
   },
 ];
 

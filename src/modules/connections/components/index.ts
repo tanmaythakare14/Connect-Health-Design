@@ -1,3 +1,4 @@
+export * from './shared';
 export * from './connections-screen';
 export * from './connection-toolbar';
 export * from './connection-table';

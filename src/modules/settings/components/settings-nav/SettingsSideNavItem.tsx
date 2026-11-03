@@ -1,13 +1,13 @@
 import type { JSX } from 'react';
 import { cn } from '@/lib/utils';
-import type { SideNavPanelItemProps } from './types';
+import type { SettingsSideNavItemProps } from '../../@types';
 
-/** One SideNavPanel entry, styled like the app sidebar's items. */
-export function SideNavPanelItem<TId extends string>({
+/** One Settings menu entry, styled like the app sidebar's items. */
+export function SettingsSideNavItem({
   item,
   isActive,
   onSelect,
-}: SideNavPanelItemProps<TId>): JSX.Element {
+}: SettingsSideNavItemProps): JSX.Element {
   const { icon: Icon, label } = item;
 
   return (

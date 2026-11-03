@@ -1,3 +1,4 @@
+import type { Connection } from '@/modules/connections';
 import type {
   AdminUser,
   LlmConfig,
@@ -73,11 +74,6 @@ export function usageRatio(used: number, limit: number): number {
   return limit > 0 ? Math.min(1, used / limit) : 0;
 }
 
-/** "Epic — fhir.epic.com" or "Stedi — pending configuration". */
-export function formatSlotTitle(slot: UsageSlot): string {
-  return `${slot.ehr} — ${slot.organization ?? 'pending configuration'}`;
-}
-
 /**
  * Why a connection in a slot counts the way it does. The first connection
  * holds the slot; the rest share it.
@@ -95,10 +91,24 @@ export function describeSlotConnection(slot: UsageSlot, index: number): string {
     : `Uses 1 connection slot${pending}.`;
 }
 
-const matchesQuery = (fields: string[], query: string): boolean =>
-  fields.some((field) => field.toLowerCase().includes(query));
+const nameMatches = (name: string, query: string): boolean =>
+  query === '' || name.toLowerCase().includes(query);
 
-/** Slots matching the search and filter (shared = more than one connection). */
+/** Connections whose name contains the search, case-insensitive. */
+export function filterConnectionsByName(
+  connections: Connection[],
+  search: string,
+): Connection[] {
+  const query = search.trim().toLowerCase();
+  return connections.filter((connection) =>
+    nameMatches(connection.name, query),
+  );
+}
+
+/**
+ * Slots with a connection named like the search, narrowed by the filter
+ * (shared = more than one connection).
+ */
 export function filterUsageSlots(
   slots: UsageSlot[],
   search: string,
@@ -108,14 +118,7 @@ export function filterUsageSlots(
   return slots.filter(
     (slot) =>
       (filter !== USAGE_FILTER.SHARED_SLOT || slot.connections.length > 1) &&
-      (query === '' ||
-        matchesQuery(
-          [
-            formatSlotTitle(slot),
-            ...slot.connections.flatMap((item) => [item.name, item.type]),
-          ],
-          query,
-        )),
+      slot.connections.some((item) => nameMatches(item.name, query)),
   );
 }
 

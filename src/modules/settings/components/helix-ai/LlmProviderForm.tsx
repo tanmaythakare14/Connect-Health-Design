@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, type JSX } from 'react';
+import { useMemo, useState, type JSX } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
-import { FormDialog } from '@/components/common';
+import { LoaderCircle, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -22,9 +22,9 @@ import {
 } from '@/components/ui/select';
 import { logger } from '@/utils/logger';
 import type {
-  EditLlmProviderDialogProps,
   LlmConfig,
   LlmConfigFormValues,
+  LlmProviderFormProps,
 } from '../../@types';
 import { LLM_PROVIDER_OPTIONS } from '../../constants';
 import {
@@ -48,16 +48,21 @@ const toFormValues = (config: LlmConfig): LlmConfigFormValues => ({
   },
 });
 
+const RequiredMark = (): JSX.Element => (
+  <span aria-hidden className="text-destructive">
+    *
+  </span>
+);
+
 /**
- * Edit the whole LLM provider configuration; saves as one unit. Mount it
- * keyed by the config's updatedAt so each saved version gets a fresh form.
+ * The LLM provider card's edit mode; saves the whole configuration as one
+ * unit. Mounted only while editing, so each edit starts from the saved config.
  */
-export function EditLlmProviderDialog({
-  open,
-  onOpenChange,
+export function LlmProviderForm({
   config,
+  onCancel,
   onSave,
-}: EditLlmProviderDialogProps): JSX.Element {
+}: LlmProviderFormProps): JSX.Element {
   const storedSecretKeys = useMemo(() => getStoredSecretKeys(config), [config]);
   const resolver = useMemo(
     () =>
@@ -71,22 +76,9 @@ export function EditLlmProviderDialog({
     mode: 'onChange',
     defaultValues: toFormValues(config),
   });
-  const { isSubmitting, isDirty, isValid } = form.formState;
+  const { isSubmitting, isDirty } = form.formState;
   const provider = useWatch({ control: form.control, name: 'provider' });
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // Each open starts from the saved config.
-  useEffect(() => {
-    if (open) {
-      form.reset(toFormValues(config));
-      setSubmitError(null);
-    }
-  }, [open, config, form]);
-
-  const handleOpenChange = (nextOpen: boolean): void => {
-    if (isSubmitting) return; // don't drop an in-flight save
-    onOpenChange(nextOpen);
-  };
 
   const handleSubmit = async (values: LlmConfigFormValues): Promise<void> => {
     setSubmitError(null);
@@ -100,19 +92,11 @@ export function EditLlmProviderDialog({
 
   return (
     <Form {...form}>
-      <FormDialog
-        open={open}
-        onOpenChange={handleOpenChange}
-        title="Edit LLM provider"
-        description="Changes apply to Helix right after you save."
+      <form
+        noValidate
+        aria-label="Edit LLM provider configuration"
         onSubmit={(event) => void form.handleSubmit(handleSubmit)(event)}
-        submitLabel="Save configuration"
-        pendingLabel="Saving…"
-        submitIcon={Save}
-        isSubmitting={isSubmitting}
-        canSubmit={isDirty && isValid}
-        error={submitError}
-        className="sm:max-w-3xl"
+        className="space-y-5 animate-in fade-in-0 duration-200"
       >
         <div className="grid items-start gap-4 sm:grid-cols-2">
           <FormField
@@ -122,9 +106,7 @@ export function EditLlmProviderDialog({
               <FormItem>
                 <FormLabel>
                   Provider
-                  <span aria-hidden className="text-destructive">
-                    *
-                  </span>
+                  <RequiredMark />
                 </FormLabel>
                 <Select
                   value={field.value}
@@ -158,9 +140,7 @@ export function EditLlmProviderDialog({
               <FormItem>
                 <FormLabel>
                   Model name
-                  <span aria-hidden className="text-destructive">
-                    *
-                  </span>
+                  <RequiredMark />
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -189,7 +169,33 @@ export function EditLlmProviderDialog({
           }
           disabled={isSubmitting}
         />
-      </FormDialog>
+
+        {submitError && (
+          <p role="alert" className="text-sm text-destructive">
+            {submitError}
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          {/* Any change enables Save; missing fields are flagged on submit. */}
+          <Button type="submit" disabled={!isDirty || isSubmitting}>
+            {isSubmitting ? (
+              <LoaderCircle aria-hidden className="animate-spin" />
+            ) : (
+              <Save aria-hidden />
+            )}
+            {isSubmitting ? 'Saving…' : 'Save changes'}
+          </Button>
+        </div>
+      </form>
     </Form>
   );
 }

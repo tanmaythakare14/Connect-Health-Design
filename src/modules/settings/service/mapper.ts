@@ -4,6 +4,8 @@ import type {
   AdminUserApiDto,
   ApiKey,
   ApiKeyApiDto,
+  ChangePasswordFormValues,
+  ChangePasswordPayload,
   ConnectionUsage,
   ConnectionUsageApiDto,
   CreateAdminUserPayload,
@@ -179,5 +181,15 @@ export function formValuesToResetUserPasswordPayload(
   return {
     password: values.password,
     mustResetPassword: values.mustResetPassword,
+  };
+}
+
+/** The confirmation is only checked in the form; it isn't sent. */
+export function formValuesToChangePasswordPayload(
+  values: ChangePasswordFormValues,
+): ChangePasswordPayload {
+  return {
+    currentPassword: values.currentPassword,
+    newPassword: values.newPassword,
   };
 }

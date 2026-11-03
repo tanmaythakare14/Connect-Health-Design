@@ -9,6 +9,8 @@ import {
 import { cn } from '@/lib/utils';
 import type { EhrSystemCardProps } from '../../@types';
 import { EHR_CAPABILITY_PREVIEW_COUNT } from '../../constants';
+import { getEhrLogo } from '../../utils';
+import { EhrLogo } from '../shared';
 
 // Light primary tint (accent tokens), not the full primary colour.
 const CAPABILITY_CHIP_CLASS_NAME =
@@ -18,7 +20,9 @@ export function EhrSystemCard({
   ehrSystem,
   onSelect,
 }: EhrSystemCardProps): JSX.Element {
-  const { name, description, monogram, capabilities, isAvailable } = ehrSystem;
+  const { id, name, description, monogram, capabilities, isAvailable } =
+    ehrSystem;
+  const logo = getEhrLogo(id);
   const visibleCapabilities = capabilities.slice(
     0,
     EHR_CAPABILITY_PREVIEW_COUNT,
@@ -35,17 +39,29 @@ export function EhrSystemCard({
       )}
     >
       <div className="flex items-start gap-3">
-        <span
-          aria-hidden
-          className={cn(
-            'flex size-11 shrink-0 items-center justify-center rounded-lg border bg-background text-sm font-semibold tracking-tight transition-colors duration-200',
-            isAvailable
-              ? 'text-primary group-hover:border-primary/30 group-hover:bg-accent'
-              : 'text-muted-foreground',
-          )}
-        >
-          {monogram}
-        </span>
+        {logo ? (
+          // The name is in the heading beside it, so the logo is decorative.
+          <EhrLogo
+            src={logo}
+            alt=""
+            className={cn(
+              'h-11 w-24 rounded-lg px-2 py-2 transition-colors duration-200',
+              isAvailable ? 'group-hover:border-primary/30' : 'opacity-60',
+            )}
+          />
+        ) : (
+          <span
+            aria-hidden
+            className={cn(
+              'flex size-11 shrink-0 items-center justify-center rounded-lg border bg-background text-sm font-semibold tracking-tight transition-colors duration-200',
+              isAvailable
+                ? 'text-primary group-hover:border-primary/30 group-hover:bg-accent'
+                : 'text-muted-foreground',
+            )}
+          >
+            {monogram}
+          </span>
+        )}
 
         <div className="min-w-0 flex-1">
           <h2

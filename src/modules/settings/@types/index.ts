@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import type { Connection } from '@/modules/connections';
 import type { CreateApiKeyFormValues } from '../components/api-keys/schema';
+import type { ChangePasswordFormValues } from '../components/change-password/schema';
 import type { LlmConfigFormValues } from '../components/helix-ai/schema';
 import type {
   AddUserFormValues,
@@ -16,6 +18,7 @@ import type {
 
 export type {
   AddUserFormValues,
+  ChangePasswordFormValues,
   CreateApiKeyFormValues,
   LlmConfigFormValues,
   ResetUserPasswordFormValues,
@@ -34,6 +37,21 @@ export interface SettingsSectionConfig {
 }
 
 // ── Component props ──────────────────────────────────────────────
+
+export interface SettingsSideNavProps {
+  items: SettingsSectionConfig[];
+  activeId: SettingsSectionId;
+  onSelect: (id: SettingsSectionId) => void;
+  /** Names the navigation landmark, e.g. "Settings" */
+  ariaLabel: string;
+  className?: string;
+}
+
+export interface SettingsSideNavItemProps {
+  item: SettingsSectionConfig;
+  isActive: boolean;
+  onSelect: (id: SettingsSectionId) => void;
+}
 
 export interface SettingsPageHeaderProps {
   section: SettingsSectionConfig;
@@ -273,8 +291,19 @@ export interface ConnectionUsage {
 
 export type ConnectionUsageState =
   | { status: 'loading' }
-  | { status: 'success'; data: ConnectionUsage }
+  | {
+      status: 'success';
+      data: ConnectionUsage;
+      /** Every connection, as listed on the Connections screen */
+      connections: Connection[];
+    }
   | { status: 'error' };
+
+export interface AllConnectionsTableProps {
+  connections: Connection[];
+  /** Shown in place of rows when there are none */
+  emptyState: ReactNode;
+}
 
 export interface UsageStatTilesProps {
   usage: ConnectionUsage;
@@ -375,14 +404,18 @@ export interface HelixAgentCardProps {
 export interface LlmProviderCardProps {
   config: LlmConfig;
   isHelixEnabled: boolean;
+  /** The card shows the edit form in place of the summary */
+  isEditing: boolean;
   onEdit: () => void;
+  onCancelEdit: () => void;
+  /** Rejects to show the form's inline error */
+  onSave: (values: LlmConfigFormValues) => Promise<void>;
 }
 
-export interface EditLlmProviderDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+export interface LlmProviderFormProps {
   config: LlmConfig;
-  /** Rejects to show the dialog's inline error */
+  onCancel: () => void;
+  /** Rejects to show the form's inline error */
   onSave: (values: LlmConfigFormValues) => Promise<void>;
 }
 
@@ -505,6 +538,14 @@ export interface UserPasswordRule {
   id: string;
   label: string;
   test: (value: string) => boolean;
+}
+
+// ── Change password ──────────────────────────────────────────────
+
+// Payload for POST /settings/account/password
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface PasswordRequirementsProps {

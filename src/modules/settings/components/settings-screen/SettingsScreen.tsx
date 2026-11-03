@@ -1,5 +1,4 @@
 import { useState, type JSX } from 'react';
-import { SideNavPanel } from '@/components/common';
 import type { SettingsSectionId } from '../../@types';
 import {
   DEFAULT_SETTINGS_SECTION,
@@ -7,8 +6,10 @@ import {
   SETTINGS_SECTIONS,
 } from '../../constants';
 import { ApiKeysSettings } from '../api-keys';
+import { ChangePasswordSettings } from '../change-password';
 import { GeneralSettings } from '../general';
 import { HelixAiSettings } from '../helix-ai';
+import { SettingsSideNav } from '../settings-nav';
 import { SubscriptionSettings } from '../subscription';
 import { UserSettings } from '../users';
 
@@ -19,6 +20,7 @@ const SECTION_SCREENS: Record<SettingsSectionId, () => JSX.Element> = {
   [SETTINGS_SECTION.SUBSCRIPTION]: SubscriptionSettings,
   [SETTINGS_SECTION.HELIX_AI]: HelixAiSettings,
   [SETTINGS_SECTION.USERS]: UserSettings,
+  [SETTINGS_SECTION.CHANGE_PASSWORD]: ChangePasswordSettings,
 };
 
 /**
@@ -44,7 +46,7 @@ export function SettingsScreen(): JSX.Element {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row">
-        <SideNavPanel
+        <SettingsSideNav
           ariaLabel="Settings"
           items={SETTINGS_SECTIONS}
           activeId={activeSectionId}
