@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import type { Connection } from '@/modules/connections';
+import type { ConnectionSource } from '@/modules/connections';
 import type { CreateApiKeyFormValues } from '../components/api-keys/schema';
-import type { ChangePasswordFormValues } from '../components/change-password/schema';
+import type { ChangePasswordFormValues } from '../components/security/schema';
 import type { LlmConfigFormValues } from '../components/helix-ai/schema';
 import type {
   AddUserFormValues,
@@ -27,7 +27,7 @@ export type {
 export type SettingsSectionId =
   (typeof SETTINGS_SECTION)[keyof typeof SETTINGS_SECTION];
 
-/** One entry in the settings side menu, and its screen's heading. */
+/** One entry in the Settings tabs, and its screen's heading. */
 export interface SettingsSectionConfig {
   id: SettingsSectionId;
   label: string;
@@ -38,19 +38,11 @@ export interface SettingsSectionConfig {
 
 // ── Component props ──────────────────────────────────────────────
 
-export interface SettingsSideNavProps {
+export interface SettingsTabsProps {
   items: SettingsSectionConfig[];
-  activeId: SettingsSectionId;
-  onSelect: (id: SettingsSectionId) => void;
-  /** Names the navigation landmark, e.g. "Settings" */
+  /** Names the tab list, e.g. "Settings" */
   ariaLabel: string;
   className?: string;
-}
-
-export interface SettingsSideNavItemProps {
-  item: SettingsSectionConfig;
-  isActive: boolean;
-  onSelect: (id: SettingsSectionId) => void;
 }
 
 export interface SettingsPageHeaderProps {
@@ -242,7 +234,15 @@ export interface PlanDetailsCardProps {
 
 // ── Subscription → Connection usage ──────────────────────────────
 
-export type UsageFilter = (typeof USAGE_FILTER)[keyof typeof USAGE_FILTER];
+/** How slots count (all / using / sharing), or one connection source */
+export type UsageFilter =
+  | (typeof USAGE_FILTER)[keyof typeof USAGE_FILTER]
+  | ConnectionSource;
+
+export interface UsageFilterOption {
+  value: UsageFilter;
+  label: string;
+}
 
 export interface UsageConnectionDto {
   id: string;
@@ -294,16 +294,8 @@ export type ConnectionUsageState =
   | {
       status: 'success';
       data: ConnectionUsage;
-      /** Every connection, as listed on the Connections screen */
-      connections: Connection[];
     }
   | { status: 'error' };
-
-export interface AllConnectionsTableProps {
-  connections: Connection[];
-  /** Shown in place of rows when there are none */
-  emptyState: ReactNode;
-}
 
 export interface UsageStatTilesProps {
   usage: ConnectionUsage;

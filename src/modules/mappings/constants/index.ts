@@ -1,0 +1,277 @@
+import type {
+  MappingFormat,
+  MappingProjectSort,
+  MappingTemplateMessageCatalog,
+  MappingTemplateSort,
+  MappingTemplateStatus,
+  SortOption,
+  TemplateCatalogInputType,
+  TemplateInputType,
+  TemplateOutputType,
+} from '../@types';
+
+export const MAPPING_FORMAT = {
+  HL7: 'hl7',
+  JSON: 'json',
+  X12: 'x12',
+  CCDA: 'ccda',
+} as const;
+
+export const MAPPING_FORMAT_LABELS: Record<MappingFormat, string> = {
+  hl7: 'HL7',
+  json: 'JSON',
+  x12: 'X12',
+  ccda: 'C-CDA',
+};
+
+export const MAPPING_PROJECT_SORT = {
+  RECENTLY_UPDATED: 'recently-updated',
+  NAME: 'name',
+  MOST_TEMPLATES: 'most-templates',
+} as const;
+
+export const MAPPING_PROJECT_SORT_OPTIONS: Array<
+  SortOption<MappingProjectSort>
+> = [
+  { value: MAPPING_PROJECT_SORT.RECENTLY_UPDATED, label: 'Recently updated' },
+  { value: MAPPING_PROJECT_SORT.NAME, label: 'Name (A–Z)' },
+  { value: MAPPING_PROJECT_SORT.MOST_TEMPLATES, label: 'Most templates' },
+];
+
+export const DEFAULT_MAPPING_PROJECT_SORT =
+  MAPPING_PROJECT_SORT.RECENTLY_UPDATED;
+
+/** Multiples of 12 fill complete rows in the 2/3/4-column grid. */
+export const PAGE_SIZE_OPTIONS = [12, 24, 48];
+export const DEFAULT_PAGE_SIZE = 12;
+/** Pagination only shows once there's more than the smallest page holds. */
+export const PAGINATION_THRESHOLD = PAGE_SIZE_OPTIONS[0];
+
+export const SKELETON_CARD_COUNT = 6;
+
+export const MAPPING_PROJECT_NAME_MAX_LENGTH = 150;
+export const MAPPING_PROJECT_DESCRIPTION_MAX_LENGTH = 150;
+
+export const IMPORT_FILE_ACCEPT = '.json,application/json';
+export const IMPORT_FILE_EXTENSIONS = ['.json'];
+export const IMPORT_FILE_MAX_BYTES = 5 * 1024 * 1024;
+export const IMPORT_FILE_MAX_LABEL = '5 MB';
+
+// ── Project detail → templates ───────────────────────────────────
+
+/** What a template reads. */
+export const TEMPLATE_INPUT_TYPE = {
+  HL7: 'hl7',
+  X12: 'x12',
+  CCDA: 'ccda',
+  CUSTOM_JSON: 'custom-json',
+} as const;
+
+export const TEMPLATE_INPUT_TYPE_OPTIONS: Array<{
+  value: TemplateInputType;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: TEMPLATE_INPUT_TYPE.HL7,
+    label: 'HL7',
+    description: 'Pipe-delimited HL7 v2 messages',
+  },
+  {
+    value: TEMPLATE_INPUT_TYPE.X12,
+    label: 'X12',
+    description: 'EDI transactions such as 270 or 837',
+  },
+  {
+    value: TEMPLATE_INPUT_TYPE.CCDA,
+    label: 'C-CDA',
+    description: 'Clinical documents in XML',
+  },
+  {
+    value: TEMPLATE_INPUT_TYPE.CUSTOM_JSON,
+    label: 'Custom JSON',
+    description: 'Any JSON shape you describe with a schema',
+  },
+];
+
+/** What a template produces. */
+export const TEMPLATE_OUTPUT_TYPE = {
+  FHIR_JSON: 'fhir-json',
+  HL7V2: 'hl7v2',
+  X12_EDI: 'x12-edi',
+  CCDA: 'ccda',
+} as const;
+
+export const TEMPLATE_OUTPUT_TYPE_OPTIONS: Array<{
+  value: TemplateOutputType;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: TEMPLATE_OUTPUT_TYPE.FHIR_JSON,
+    label: 'FHIR / JSON',
+    description: 'Generates a FHIR / JSON object from your mapped fields.',
+  },
+  {
+    value: TEMPLATE_OUTPUT_TYPE.HL7V2,
+    label: 'HL7 v2',
+    description:
+      'Generates a pipe-delimited HL7 v2 message from your mapped fields.',
+  },
+  {
+    value: TEMPLATE_OUTPUT_TYPE.X12_EDI,
+    label: 'X12 EDI',
+    description: 'Generates an X12 EDI transaction from your mapped fields.',
+  },
+  {
+    value: TEMPLATE_OUTPUT_TYPE.CCDA,
+    label: 'C-CDA',
+    description: 'Generates a C-CDA XML document from your mapped fields.',
+  },
+];
+
+export const TEMPLATE_INPUT_TYPE_LABELS = Object.fromEntries(
+  TEMPLATE_INPUT_TYPE_OPTIONS.map(({ value, label }) => [value, label]),
+) as Record<TemplateInputType, string>;
+
+export const TEMPLATE_OUTPUT_TYPE_LABELS = Object.fromEntries(
+  TEMPLATE_OUTPUT_TYPE_OPTIONS.map(({ value, label }) => [value, label]),
+) as Record<TemplateOutputType, string>;
+
+/** "From catalog" picks a known value; "Custom" types one in. */
+export const CATALOG_MODE = {
+  CATALOG: 'catalog',
+  CUSTOM: 'custom',
+} as const;
+
+/** Version value meaning "accept every version". */
+export const ANY_VERSION = '';
+
+/** Message types and versions per input type; Custom JSON has none. */
+export const TEMPLATE_MESSAGE_CATALOGS: Record<
+  TemplateCatalogInputType,
+  MappingTemplateMessageCatalog
+> = {
+  hl7: {
+    question: 'Which HL7 message type does this handle?',
+    selectPlaceholder: 'Select a message type',
+    searchPlaceholder: 'Search by name or code, e.g. A08',
+    customPlaceholder: 'e.g. ORU_R01',
+    customHint: 'The message code and trigger event, joined by _ or ^.',
+    versionCustomPlaceholder: 'e.g. 2.5.1',
+    types: [
+      { value: 'ADT_A01', label: 'Admit/Visit Notification' },
+      { value: 'ADT_A02', label: 'Transfer a Patient' },
+      { value: 'ADT_A03', label: 'Discharge/End Visit' },
+      { value: 'ADT_A04', label: 'Register a Patient' },
+      { value: 'ADT_A05', label: 'Pre-admit a Patient' },
+      { value: 'ADT_A06', label: 'Change Outpatient to Inpatient' },
+      { value: 'ADT_A07', label: 'Change Inpatient to Outpatient' },
+      { value: 'ADT_A08', label: 'Update Patient Information' },
+      { value: 'ADT_A11', label: 'Cancel Admit/Visit Notification' },
+      { value: 'ADT_A12', label: 'Cancel Transfer' },
+      { value: 'ADT_A13', label: 'Cancel Discharge/End Visit' },
+      { value: 'ADT_A28', label: 'Add Person Information' },
+      { value: 'ADT_A31', label: 'Update Person Information' },
+      { value: 'ADT_A40', label: 'Merge Patient Identifier List' },
+      { value: 'ORM_O01', label: 'General Order' },
+      { value: 'OML_O21', label: 'Laboratory Order' },
+      { value: 'ORU_R01', label: 'Unsolicited Observation Result' },
+      { value: 'MDM_T02', label: 'Original Document Notification' },
+      { value: 'SIU_S12', label: 'New Appointment Booking' },
+      { value: 'SIU_S14', label: 'Appointment Modification' },
+      { value: 'SIU_S15', label: 'Appointment Cancellation' },
+      { value: 'VXU_V04', label: 'Unsolicited Vaccination Update' },
+      { value: 'DFT_P03', label: 'Post Detail Financial Transaction' },
+    ],
+    versions: [
+      '2.1',
+      '2.2',
+      '2.3',
+      '2.3.1',
+      '2.4',
+      '2.5',
+      '2.5.1',
+      '2.6',
+      '2.7',
+      '2.7.1',
+      '2.8',
+    ],
+  },
+  x12: {
+    question: 'Which X12 transaction does this handle?',
+    selectPlaceholder: 'Select a transaction',
+    searchPlaceholder: 'Search by name or number, e.g. 837',
+    customPlaceholder: 'e.g. 837P',
+    customHint: 'The transaction set number, e.g. 270 or 837I.',
+    versionCustomPlaceholder: 'e.g. 005010X279A1',
+    types: [
+      { value: '270', label: 'Eligibility Inquiry' },
+      { value: '271', label: 'Eligibility Response' },
+      { value: '276', label: 'Claim Status Request' },
+      { value: '277', label: 'Claim Status Response' },
+      { value: '278', label: 'Prior Authorization' },
+      { value: '834', label: 'Benefit Enrollment' },
+      { value: '835', label: 'Claim Payment / Remittance' },
+      { value: '837P', label: 'Professional Claim' },
+      { value: '837I', label: 'Institutional Claim' },
+      { value: '837D', label: 'Dental Claim' },
+    ],
+    versions: ['004010', '005010', '006020'],
+  },
+  ccda: {
+    question: 'Which C-CDA document type does this handle?',
+    selectPlaceholder: 'Select a document type',
+    searchPlaceholder: 'Search document types',
+    customPlaceholder: 'e.g. UnstructuredDocument',
+    customHint: 'The document type as it appears in the template ID.',
+    versionCustomPlaceholder: 'e.g. R2.1',
+    types: [
+      { value: 'CCD', label: 'Continuity of Care Document' },
+      { value: 'DischargeSummary', label: 'Discharge Summary' },
+      { value: 'ReferralNote', label: 'Referral Note' },
+      { value: 'ProgressNote', label: 'Progress Note' },
+      { value: 'ConsultationNote', label: 'Consultation Note' },
+      { value: 'HistoryAndPhysical', label: 'History and Physical' },
+      { value: 'OperativeNote', label: 'Operative Note' },
+      { value: 'CarePlan', label: 'Care Plan' },
+      { value: 'TransferSummary', label: 'Transfer Summary' },
+    ],
+    versions: ['R1.1', 'R2.1', 'R3.0'],
+  },
+};
+
+export const MAPPING_TEMPLATE_STATUS = {
+  READY: 'ready',
+  DRAFT: 'draft',
+} as const;
+
+export const MAPPING_TEMPLATE_STATUS_LABELS: Record<
+  MappingTemplateStatus,
+  string
+> = {
+  ready: 'Ready',
+  draft: 'Draft',
+};
+
+export const MAPPING_TEMPLATE_SORT = {
+  RECENTLY_UPDATED: 'recently-updated',
+  NAME: 'name',
+  MOST_FIELDS: 'most-fields',
+} as const;
+
+export const MAPPING_TEMPLATE_SORT_OPTIONS: Array<
+  SortOption<MappingTemplateSort>
+> = [
+  { value: MAPPING_TEMPLATE_SORT.RECENTLY_UPDATED, label: 'Recently updated' },
+  { value: MAPPING_TEMPLATE_SORT.NAME, label: 'Name (A–Z)' },
+  { value: MAPPING_TEMPLATE_SORT.MOST_FIELDS, label: 'Most fields' },
+];
+
+export const DEFAULT_MAPPING_TEMPLATE_SORT =
+  MAPPING_TEMPLATE_SORT.RECENTLY_UPDATED;
+
+export const MAPPING_TEMPLATE_NAME_MAX_LENGTH = 150;
+export const MAPPING_TEMPLATE_DESCRIPTION_MAX_LENGTH = 150;
+export const MAPPING_TEMPLATE_MESSAGE_TYPE_MAX_LENGTH = 40;
+export const MAPPING_TEMPLATE_VERSION_MAX_LENGTH = 20;

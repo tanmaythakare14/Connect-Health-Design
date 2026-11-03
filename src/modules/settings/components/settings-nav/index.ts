@@ -1,2 +1,1 @@
-export { SettingsSideNav } from './SettingsSideNav';
-export { SettingsSideNavItem } from './SettingsSideNavItem';
+export { SettingsTabs } from './SettingsTabs';

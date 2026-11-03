@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
 import { Clock, Waypoints } from 'lucide-react';
+import { formatUpdatedLabel } from '@/utils/date';
 import type { WorkflowCardProps } from '../../@types';
-import { formatUpdatedLabel } from '../../utils';
 import { WorkflowCardMenu } from './WorkflowCardMenu';
 import { WorkflowConnectionChips } from './WorkflowConnectionChips';
 import { WorkflowStatusBadge } from './WorkflowStatusBadge';

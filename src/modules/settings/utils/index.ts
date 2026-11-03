@@ -1,4 +1,3 @@
-import type { Connection } from '@/modules/connections';
 import type {
   AdminUser,
   LlmConfig,
@@ -94,21 +93,18 @@ export function describeSlotConnection(slot: UsageSlot, index: number): string {
 const nameMatches = (name: string, query: string): boolean =>
   query === '' || name.toLowerCase().includes(query);
 
-/** Connections whose name contains the search, case-insensitive. */
-export function filterConnectionsByName(
-  connections: Connection[],
-  search: string,
-): Connection[] {
-  const query = search.trim().toLowerCase();
-  return connections.filter((connection) =>
-    nameMatches(connection.name, query),
-  );
+/** Shared = more than one connection; a source keeps only its EHR's slots. */
+function slotMatchesFilter(slot: UsageSlot, filter: UsageFilter): boolean {
+  if (filter === USAGE_FILTER.ALL || filter === USAGE_FILTER.USING_SLOT) {
+    return true;
+  }
+  if (filter === USAGE_FILTER.SHARED_SLOT) return slot.connections.length > 1;
+  // A source matches its EHR by name, e.g. Veradigm → "Allscripts (Veradigm)"
+  const sourceLabel = getUsageFilterLabel(filter).toLowerCase();
+  return slot.ehr.toLowerCase().includes(sourceLabel);
 }
 
-/**
- * Slots with a connection named like the search, narrowed by the filter
- * (shared = more than one connection).
- */
+/** Slots matching the filter with a connection whose name matches the search. */
 export function filterUsageSlots(
   slots: UsageSlot[],
   search: string,
@@ -117,8 +113,19 @@ export function filterUsageSlots(
   const query = search.trim().toLowerCase();
   return slots.filter(
     (slot) =>
-      (filter !== USAGE_FILTER.SHARED_SLOT || slot.connections.length > 1) &&
+      slotMatchesFilter(slot, filter) &&
       slot.connections.some((item) => nameMatches(item.name, query)),
+  );
+}
+
+export function isSettingsSectionId(value: string): value is SettingsSectionId {
+  return SETTINGS_SECTIONS.some((section) => section.id === value);
+}
+
+export function getUsageFilterLabel(filter: UsageFilter): string {
+  return (
+    USAGE_FILTER_OPTIONS.find((option) => option.value === filter)?.label ??
+    filter
   );
 }
 

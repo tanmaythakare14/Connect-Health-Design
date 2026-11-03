@@ -1,14 +1,9 @@
 import { useCallback, useEffect, useState, type JSX } from 'react';
-import { Cable, CircleAlert, CircleCheck, Layers, SearchX } from 'lucide-react';
+import { CircleAlert, CircleCheck, Layers, SearchX } from 'lucide-react';
 import { toast } from 'sonner';
 import { EmptyState } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  apiDtoToConnection,
-  listConnections,
-  type Connection,
-} from '@/modules/connections';
 import { logger } from '@/utils/logger';
 import type {
   ConnectionUsageState,
@@ -17,8 +12,7 @@ import type {
 } from '../../../@types';
 import { USAGE_FILTER } from '../../../constants';
 import { apiDtoToConnectionUsage, getConnectionUsage } from '../../../service';
-import { filterConnectionsByName, filterUsageSlots } from '../../../utils';
-import { AllConnectionsTable } from './AllConnectionsTable';
+import { filterUsageSlots, getUsageFilterLabel } from '../../../utils';
 import { ConnectionUsageHeaderActions } from './ConnectionUsageHeaderActions';
 import { CountingRulesDisclosure } from './CountingRulesDisclosure';
 import { SlotCard } from './SlotCard';
@@ -28,22 +22,22 @@ import { UsageStatTiles } from './UsageStatTiles';
 
 const BODY_ID = 'connection-usage-body';
 
-/** Plan usage plus the Connections screen's list, fetched together. */
+/** Slot filters count slots; everything else counts connections. */
+const COUNTS_SLOTS: ReadonlySet<UsageFilter> = new Set([
+  USAGE_FILTER.USING_SLOT,
+  USAGE_FILTER.SHARED_SLOT,
+]);
+
 async function fetchUsage(): Promise<ConnectionUsageState> {
-  const [usageDto, connectionDtos] = await Promise.all([
-    getConnectionUsage(),
-    listConnections(),
-  ]);
   return {
     status: 'success',
-    data: apiDtoToConnectionUsage(usageDto),
-    connections: connectionDtos.map(apiDtoToConnection),
+    data: apiDtoToConnectionUsage(await getConnectionUsage()),
   };
 }
 
 /**
  * Collapsible "Connection usage": headline numbers, the counting rules, a
- * filter, then every connection — or just the slots in use.
+ * filter, then each slot with the connections counted in it.
  */
 export function ConnectionUsageSection(): JSX.Element {
   const [state, setState] = useState<ConnectionUsageState>({
@@ -103,33 +97,6 @@ export function ConnectionUsageSection(): JSX.Element {
     />
   );
 
-  const renderAllConnections = (connections: Connection[]): JSX.Element => {
-    const matches = filterConnectionsByName(connections, search);
-    return (
-      <div className="space-y-3">
-        <UsageGroupHeading
-          icon={Cable}
-          title="All connections"
-          count={matches.length}
-        />
-        <AllConnectionsTable
-          connections={matches}
-          emptyState={
-            search.trim() === '' ? (
-              <EmptyState
-                icon={Cable}
-                title="No connections yet"
-                description="Connections you add on the Connections screen show up here."
-              />
-            ) : (
-              noMatchesState
-            )
-          }
-        />
-      </div>
-    );
-  };
-
   const renderSlots = (allSlots: UsageSlot[]): JSX.Element => {
     const slots = filterUsageSlots(allSlots, search, filter);
 
@@ -142,12 +109,12 @@ export function ConnectionUsageSection(): JSX.Element {
       <div className="space-y-3">
         <UsageGroupHeading
           icon={CircleCheck}
-          title={
-            filter === USAGE_FILTER.SHARED_SLOT
-              ? 'Sharing a slot'
-              : 'Using a slot'
+          title={getUsageFilterLabel(filter)}
+          count={
+            COUNTS_SLOTS.has(filter)
+              ? slots.length
+              : slots.reduce((sum, slot) => sum + slot.connections.length, 0)
           }
-          count={slots.length}
         />
         <ul className="space-y-3">
           {slots.map((slot) => (
@@ -205,9 +172,7 @@ export function ConnectionUsageSection(): JSX.Element {
           filter={filter}
           onFilterChange={setFilter}
         />
-        {filter === USAGE_FILTER.ALL
-          ? renderAllConnections(state.connections)
-          : renderSlots(state.data.slots)}
+        {renderSlots(state.data.slots)}
       </div>
     );
   };

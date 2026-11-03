@@ -4,15 +4,27 @@ import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import type { UsageFilterBarProps } from '../../../@types';
-import { USAGE_FILTER_OPTIONS } from '../../../constants';
+import {
+  USAGE_ALL_FILTER_OPTION,
+  USAGE_SLOT_FILTER_OPTIONS,
+  USAGE_SOURCE_FILTER_OPTIONS,
+} from '../../../constants';
 import { isUsageFilter } from '../../../utils';
 
-/** Search by connection name, and narrow by how connections count. */
+const FILTER_GROUPS = [
+  { label: 'Connection source', options: USAGE_SOURCE_FILTER_OPTIONS },
+  { label: 'Slot usage', options: USAGE_SLOT_FILTER_OPTIONS },
+];
+
+/** Search by connection name; narrow by source or by how connections count. */
 export function UsageFilterBar({
   search,
   onSearchChange,
@@ -49,10 +61,19 @@ export function UsageFilterBar({
           <SelectValue />
         </SelectTrigger>
         <SelectContent align="start">
-          {USAGE_FILTER_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
+          <SelectItem value={USAGE_ALL_FILTER_OPTION.value}>
+            {USAGE_ALL_FILTER_OPTION.label}
+          </SelectItem>
+          {FILTER_GROUPS.map((group) => (
+            <SelectGroup key={group.label}>
+              <SelectSeparator />
+              <SelectLabel>{group.label}</SelectLabel>
+              {group.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
           ))}
         </SelectContent>
       </Select>

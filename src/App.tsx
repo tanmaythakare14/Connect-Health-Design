@@ -6,6 +6,7 @@ import { useApplyTheme } from '@/hooks/useApplyTheme';
 import { ConnectionsScreen } from '@/modules/connections';
 import { DashboardScreen } from '@/modules/dashboard';
 import { LogsScreen, type LogTab } from '@/modules/logs';
+import { MappingsScreen } from '@/modules/mappings';
 import { SignInScreen } from '@/modules/onboarding';
 import { SettingsScreen } from '@/modules/settings';
 import { WorkflowsScreen } from '@/modules/workflows';
@@ -64,6 +65,8 @@ function App(): JSX.Element {
             <ConnectionsScreen />
           ) : activePageId === 'workflows' ? (
             <WorkflowsScreen />
+          ) : activePageId === 'mappings' ? (
+            <MappingsScreen />
           ) : activePageId === 'logs' ? (
             <LogsScreen initialTab={logsInitialTab} />
           ) : activePageId === 'settings' ? (

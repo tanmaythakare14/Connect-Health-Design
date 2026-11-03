@@ -1,0 +1,1 @@
+export { MappingsScreen } from './components';

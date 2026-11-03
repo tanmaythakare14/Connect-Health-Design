@@ -1,16 +1,20 @@
 import {
   CreditCard,
   KeyRound,
-  LockKeyhole,
+  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   Users,
 } from 'lucide-react';
+import {
+  CONNECTION_SOURCE,
+  CONNECTION_SOURCE_LABELS,
+} from '@/modules/connections';
 import type {
   LicenseSourceType,
   LlmProviderOption,
   SettingsSectionConfig,
-  UsageFilter,
+  UsageFilterOption,
   UserPasswordRule,
   UserRole,
 } from '../@types';
@@ -21,10 +25,10 @@ export const SETTINGS_SECTION = {
   SUBSCRIPTION: 'subscription',
   HELIX_AI: 'helix-ai',
   USERS: 'users',
-  CHANGE_PASSWORD: 'change-password',
+  SECURITY: 'security',
 } as const;
 
-/** Side menu order; General opens by default. */
+/** Tab order; General opens by default. */
 export const SETTINGS_SECTIONS: SettingsSectionConfig[] = [
   {
     id: SETTINGS_SECTION.GENERAL,
@@ -61,11 +65,11 @@ export const SETTINGS_SECTIONS: SettingsSectionConfig[] = [
     icon: Users,
   },
   {
-    id: SETTINGS_SECTION.CHANGE_PASSWORD,
-    label: 'Change Password',
+    id: SETTINGS_SECTION.SECURITY,
+    label: 'Security',
     description:
-      'Update the password you use to sign in to the ConnectHealth management console',
-    icon: LockKeyhole,
+      'Your password and two-factor authentication for the ConnectHealth management console',
+    icon: ShieldCheck,
   },
 ];
 
@@ -112,13 +116,25 @@ export const USAGE_FILTER = {
   SHARED_SLOT: 'shared',
 } as const;
 
-export const USAGE_FILTER_OPTIONS: Array<{
-  value: UsageFilter;
-  label: string;
-}> = [
-  { value: USAGE_FILTER.ALL, label: 'All connections' },
+export const USAGE_ALL_FILTER_OPTION: UsageFilterOption = {
+  value: USAGE_FILTER.ALL,
+  label: 'All connections',
+};
+
+/** The same sources as the Connections table */
+export const USAGE_SOURCE_FILTER_OPTIONS: UsageFilterOption[] = Object.values(
+  CONNECTION_SOURCE,
+).map((source) => ({ value: source, label: CONNECTION_SOURCE_LABELS[source] }));
+
+export const USAGE_SLOT_FILTER_OPTIONS: UsageFilterOption[] = [
   { value: USAGE_FILTER.USING_SLOT, label: 'Using a slot' },
   { value: USAGE_FILTER.SHARED_SLOT, label: 'Sharing a slot' },
+];
+
+export const USAGE_FILTER_OPTIONS: UsageFilterOption[] = [
+  USAGE_ALL_FILTER_OPTION,
+  ...USAGE_SOURCE_FILTER_OPTIONS,
+  ...USAGE_SLOT_FILTER_OPTIONS,
 ];
 
 export const CONNECTION_COUNTING_RULES = [

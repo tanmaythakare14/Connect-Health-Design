@@ -8,38 +8,26 @@ import type {
   AddUserFormValues,
   AdminUser,
   AdminUserListState,
-  TwoFactorSettingsState,
 } from '../../@types';
 import { NEW_USER_HIGHLIGHT_MS, SETTINGS_SECTION } from '../../constants';
 import {
   apiDtoToAdminUser,
-  apiDtoToTwoFactorSettings,
   createAdminUser,
   deleteAdminUser,
   formValuesToCreateAdminUserPayload,
-  getTwoFactorSettings,
   listAdminUsers,
-  resetTwoFactor,
-  updateRequireTwoFactor,
 } from '../../service';
 import { getSettingsSection } from '../../utils';
 import { SettingsPageHeader } from '../shared';
 import { AddUserDialog } from './AddUserDialog';
-import { TwoFactorCard } from './TwoFactorCard';
 import { UserTable } from './UserTable';
 
 const NO_NEW_USERS: ReadonlySet<string> = new Set();
 
 const displayNameOf = (user: AdminUser): string => user.name ?? user.username;
 
-/** Settings → Users: your 2FA, plus adding and removing admins. */
+/** Settings → Users: adding and removing admins. */
 export function UserSettings(): JSX.Element {
-  const [twoFactorState, setTwoFactorState] = useState<TwoFactorSettingsState>({
-    status: 'loading',
-  });
-  const [isSavingTwoFactor, setIsSavingTwoFactor] = useState(false);
-  const [isResetTwoFactorOpen, setIsResetTwoFactorOpen] = useState(false);
-
   const [listState, setListState] = useState<AdminUserListState>({
     status: 'loading',
   });
@@ -49,20 +37,6 @@ export function UserSettings(): JSX.Element {
   // Stays set after close so the dialog text doesn't vanish mid-animation.
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-
-  const loadTwoFactor = useCallback(async (): Promise<void> => {
-    setTwoFactorState({ status: 'loading' });
-    try {
-      const dto = await getTwoFactorSettings();
-      setTwoFactorState({
-        status: 'success',
-        data: apiDtoToTwoFactorSettings(dto),
-      });
-    } catch (error) {
-      logger.error('Loading two-factor settings failed', { error });
-      setTwoFactorState({ status: 'error' });
-    }
-  }, []);
 
   const loadUsers = useCallback(async (): Promise<void> => {
     setListState({ status: 'loading' });
@@ -76,51 +50,8 @@ export function UserSettings(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    void loadTwoFactor();
     void loadUsers();
-  }, [loadTwoFactor, loadUsers]);
-
-  const setRequireOnLogin = (requireOnLogin: boolean): void => {
-    setTwoFactorState((current) =>
-      current.status === 'success'
-        ? { ...current, data: { ...current.data, requireOnLogin } }
-        : current,
-    );
-  };
-
-  // Flips immediately, then saves; a failed save puts the switch back.
-  const handleToggleRequire = async (required: boolean): Promise<void> => {
-    setRequireOnLogin(required);
-    setIsSavingTwoFactor(true);
-    try {
-      await updateRequireTwoFactor(required);
-      toast.success(
-        required ? '2FA required on login' : '2FA no longer required',
-        {
-          description: required
-            ? 'You’ll be asked for a code each time you sign in.'
-            : 'You can sign in with just your password.',
-        },
-      );
-    } catch (error) {
-      logger.error('Updating 2FA requirement failed', { error });
-      setRequireOnLogin(!required);
-      toast.error('Couldn’t save your change', {
-        description: 'Please try again.',
-      });
-    } finally {
-      setIsSavingTwoFactor(false);
-    }
-  };
-
-  // Rejections propagate so ConfirmDialog can show its inline error.
-  const handleConfirmResetTwoFactor = async (): Promise<void> => {
-    await resetTwoFactor();
-    toast.success('2FA reset started', {
-      description:
-        'Scan the new code with your authenticator app at your next sign-in.',
-    });
-  };
+  }, [loadUsers]);
 
   const updateUsers = (update: (users: AdminUser[]) => AdminUser[]): void => {
     setListState((current) =>
@@ -171,14 +102,6 @@ export function UserSettings(): JSX.Element {
             Add user
           </Button>
         }
-      />
-
-      <TwoFactorCard
-        state={twoFactorState}
-        isSaving={isSavingTwoFactor}
-        onToggleRequire={(required) => void handleToggleRequire(required)}
-        onReset={() => setIsResetTwoFactorOpen(true)}
-        onRetry={() => void loadTwoFactor()}
       />
 
       <section
@@ -244,17 +167,6 @@ export function UserSettings(): JSX.Element {
         open={isAddOpen}
         onOpenChange={setIsAddOpen}
         onAdd={handleAdd}
-      />
-
-      <ConfirmDialog
-        open={isResetTwoFactorOpen}
-        onOpenChange={setIsResetTwoFactorOpen}
-        title="Reset two-factor authentication?"
-        description="You’ll set up a new authenticator app at your next sign-in. Your current one keeps working until the new one is verified."
-        confirmLabel="Reset 2FA"
-        pendingLabel="Resetting…"
-        onConfirm={handleConfirmResetTwoFactor}
-        errorMessage="We couldn’t reset 2FA. Please try again."
       />
 
       <ConfirmDialog
