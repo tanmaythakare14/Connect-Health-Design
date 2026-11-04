@@ -14,3 +14,4 @@ export { DataTable } from './DataTable';
 export { FormDialog } from './FormDialog';
 export { CopyIconButton } from './CopyIconButton';
 export type * from './types';
+export { PanelResizeHandle } from './PanelResizeHandle';

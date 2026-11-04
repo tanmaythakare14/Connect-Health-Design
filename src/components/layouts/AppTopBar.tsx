@@ -1,12 +1,9 @@
 import type { JSX } from 'react';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { getInitials } from '@/utils/name';
 import type { AppTopBarProps } from './types';
 
 export function AppTopBar({
-  user,
   logoSrc,
   productName,
   isSidebarCollapsed,
@@ -15,7 +12,7 @@ export function AppTopBar({
   const ToggleIcon = isSidebarCollapsed ? PanelLeftOpen : PanelLeftClose;
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-background pr-4 pl-3.5">
+    <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-background pr-4 pl-3.5">
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
@@ -36,17 +33,6 @@ export function AppTopBar({
           className="h-5 w-auto select-none"
           draggable={false}
         />
-      </div>
-
-      <div className="flex items-center gap-3">
-        <span className="hidden text-sm font-medium text-foreground sm:inline">
-          {user.name}
-        </span>
-        <Avatar className="size-9">
-          <AvatarFallback className="bg-accent text-xs font-semibold text-accent-foreground">
-            {getInitials(user.name)}
-          </AvatarFallback>
-        </Avatar>
       </div>
     </header>
   );

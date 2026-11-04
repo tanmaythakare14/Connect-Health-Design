@@ -1,4 +1,4 @@
-import type { ComponentProps, FormEvent, ReactNode } from 'react';
+import type { ComponentProps, FormEvent, PointerEvent, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import type { TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -168,4 +168,16 @@ export interface EmptyStateProps {
   description?: string;
   action?: ReactNode;
   tone?: 'default' | 'destructive';
+}
+
+export interface PanelResizeHandleProps {
+  /** Names the two panels it sits between, e.g. "Resize source and target" */
+  label: string;
+  isActive: boolean;
+  onPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
+  /** Moves the handle by this many pixels (arrow keys) */
+  onResizeBy: (deltaPx: number) => void;
+  /** Double-click: back to equal widths */
+  onReset: () => void;
+  className?: string;
 }

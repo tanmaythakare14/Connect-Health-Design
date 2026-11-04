@@ -23,6 +23,7 @@ import { AppTopBar } from './AppTopBar';
 import { HelpGuidesPopover } from './HelpGuidesPopover';
 import { SidebarNavItem } from './SidebarNavItem';
 import { ThemeToggleItem } from './ThemeToggleItem';
+import { UserMenuPopover } from './UserMenuPopover';
 import type { AppShellProps } from './types';
 
 export function AppShell({
@@ -48,7 +49,6 @@ export function AppShell({
     // document and the whole window scrolls.
     <div className="relative flex h-screen flex-col overflow-hidden bg-canvas">
       <AppTopBar
-        user={user}
         logoSrc={PRODUCT_LOGO_SRC}
         productName={PRODUCT_NAME}
         isSidebarCollapsed={isCollapsed}
@@ -83,12 +83,10 @@ export function AppShell({
                 isDark={theme === 'dark'}
                 onToggle={() => dispatch(toggleTheme())}
               />
-              <SidebarNavItem
-                icon={LogOut}
-                label="Log out"
+              <UserMenuPopover
+                user={user}
                 isCollapsed={isCollapsed}
-                onClick={() => setIsLogoutOpen(true)}
-                className="hover:bg-destructive/10 hover:text-destructive"
+                onLogout={() => setIsLogoutOpen(true)}
               />
             </>
           }

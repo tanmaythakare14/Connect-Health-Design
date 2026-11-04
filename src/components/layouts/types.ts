@@ -22,7 +22,6 @@ export interface HelpGuide {
 }
 
 export interface AppTopBarProps {
-  user: AppUser;
   logoSrc: string;
   productName: string;
   isSidebarCollapsed: boolean;
@@ -34,7 +33,7 @@ export interface AppSidebarProps {
   activeItemId: string;
   isCollapsed: boolean;
   onNavigate: (itemId: string) => void;
-  /** Pinned to the bottom of the sidebar (help, settings, theme, logout). */
+  /** Pinned to the bottom of the sidebar (help, settings, theme, account). */
   footer?: ReactNode;
 }
 
@@ -61,6 +60,13 @@ export interface HelpGuidesPopoverProps {
 export interface HelpGuideItemProps {
   guide: HelpGuide;
   onSelect: (guideId: string) => void;
+}
+
+export interface UserMenuPopoverProps {
+  user: AppUser;
+  isCollapsed: boolean;
+  /** Asks to log out; the shell confirms first. */
+  onLogout: () => void;
 }
 
 export interface ThemeToggleItemProps {

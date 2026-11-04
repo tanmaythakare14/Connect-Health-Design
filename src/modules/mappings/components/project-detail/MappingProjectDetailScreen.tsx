@@ -52,6 +52,7 @@ import { MappingProjectCardSkeleton } from '../mapping-project-card';
 import { ListToolbar } from '../shared';
 import { MappingTemplateCard } from '../template-card';
 import { MappingTemplateDialog } from '../template-dialog';
+import { MappingTemplateEditorScreen } from '../template-editor';
 import { MappingProjectHeader } from './MappingProjectHeader';
 
 const GRID_CLASS_NAME =
@@ -82,6 +83,8 @@ export function MappingProjectDetailScreen({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   // Briefly highlights a card that was just added or saved.
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  // The template whose fields are being mapped; replaces the list while set.
+  const [openTemplateId, setOpenTemplateId] = useState<string | null>(null);
 
   const loadTemplates = useCallback(async (): Promise<void> => {
     setListState({ status: 'loading' });
@@ -228,13 +231,23 @@ export function MappingProjectDetailScreen({
     });
   };
 
-  // MOCK: the field-mapping editor doesn't exist yet.
   const handleOpen = (template: MappingTemplate): void => {
-    logger.info('Open mapping template requested', {
-      projectId: project.id,
-      templateId: template.id,
-    });
+    setOpenTemplateId(template.id);
   };
+
+  const openTemplate = allTemplates.find(
+    (template) => template.id === openTemplateId,
+  );
+  if (openTemplate) {
+    return (
+      <MappingTemplateEditorScreen
+        project={project}
+        template={openTemplate}
+        onBack={() => setOpenTemplateId(null)}
+        onBackToProjects={onBack}
+      />
+    );
+  }
 
   const renderContent = (): JSX.Element => {
     if (listState.status === 'loading') {

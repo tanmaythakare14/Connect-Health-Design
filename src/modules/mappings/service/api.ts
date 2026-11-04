@@ -237,3 +237,22 @@ export async function deleteMappingTemplate(
     templatesOf(projectId).filter(({ id }) => id !== templateId),
   );
 }
+
+/** Saves a template's field mappings (source sample, target tree, values). */
+export async function saveMappingTemplateMappings(
+  projectId: string,
+  templateId: string,
+): Promise<void> {
+  await simulateLatency();
+  // MOCK: the mappings themselves stay in the editor; only the template's
+  // "updated" time moves, so the templates list shows the save.
+  const templates = MOCK_TEMPLATES_BY_PROJECT.get(projectId) ?? [];
+  MOCK_TEMPLATES_BY_PROJECT.set(
+    projectId,
+    templates.map((template) =>
+      template.id === templateId
+        ? { ...template, updatedAt: new Date().toISOString() }
+        : template,
+    ),
+  );
+}

@@ -5,6 +5,8 @@ import type {
   MappingTemplateSort,
   MappingTemplateStatus,
   SortOption,
+  CustomValueType,
+  SourceValueType,
   TemplateCatalogInputType,
   TemplateInputType,
   TemplateOutputType,
@@ -275,3 +277,60 @@ export const MAPPING_TEMPLATE_NAME_MAX_LENGTH = 150;
 export const MAPPING_TEMPLATE_DESCRIPTION_MAX_LENGTH = 150;
 export const MAPPING_TEMPLATE_MESSAGE_TYPE_MAX_LENGTH = 40;
 export const MAPPING_TEMPLATE_VERSION_MAX_LENGTH = 20;
+
+// ── Template editor ─────────────────────────────────────────────────────
+
+/** "PID.5.1", "ORC.7.4", "ZPD.1" — segment id, then field/component numbers. */
+export const HL7_REF_PATTERN = /^[A-Z][A-Z0-9]{2}(\.\d+){1,3}$/;
+
+export const SOURCE_SAMPLE_ACCEPT = '.hl7,.txt';
+
+/** Ref of the group that collects fields added by hand. */
+export const MANUAL_SOURCE_GROUP_REF = '__manual__';
+
+export const TARGET_VIEW = {
+  FIELDS: 'fields',
+  TABLE: 'table',
+  LIQUID: 'liquid',
+} as const;
+
+export const TARGET_FILTER = {
+  ALL: 'all',
+  NEEDED: 'needed',
+} as const;
+
+export const TARGET_SAMPLE_ACCEPT = '.json';
+
+/** A target key: a JSON-friendly name like middleName or address_2. */
+export const TARGET_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+/** What the + on an object or group adds. */
+export const TARGET_ADD_KIND = {
+  FIELD: 'field',
+  GROUP: 'group',
+  ITEM: 'item',
+} as const;
+
+/** The value types a new target field can have: string or number. */
+export const TARGET_VALUE_TYPE_OPTIONS: Array<{
+  value: SourceValueType;
+  label: string;
+}> = [
+  { value: 'text', label: 'string' },
+  { value: 'number', label: 'number' },
+];
+
+/** How an unmapped target field gets its value. */
+export const TARGET_VALUE_MODE = {
+  CONSTANT: 'constant',
+  EXPRESSION: 'expression',
+} as const;
+
+export const CUSTOM_VALUE_TYPE_OPTIONS: Array<{
+  value: CustomValueType;
+  label: string;
+}> = [
+  { value: 'text', label: 'Text' },
+  { value: 'number', label: 'Number' },
+  { value: 'boolean', label: 'True / false' },
+];

@@ -20,6 +20,7 @@ import type {
 import { EHR_SKELETON_CARD_COUNT } from '../../constants';
 import { apiDtoToEhrSystem, listEhrSystems } from '../../service';
 import { filterEhrSystems } from '../../utils';
+import { ComplianceBadges } from './ComplianceBadges';
 import { EhrSystemCard } from './EhrSystemCard';
 import { EnterpriseSupportCallout } from './EnterpriseSupportCallout';
 
@@ -175,21 +176,25 @@ export function AddConnectionScreen({
           </p>
         </div>
 
-        <div className="relative w-full max-w-sm">
-          <Search
-            aria-hidden
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search EHR systems..."
-            aria-label="Search EHR systems"
-            className="bg-background pl-9"
-            disabled={listState.status !== 'success'}
-            autoFocus
-          />
+        {/* Badges sit beside the search, and above it when space runs out */}
+        <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
+          <ComplianceBadges />
+          <div className="relative w-full sm:w-80">
+            <Search
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search EHR systems..."
+              aria-label="Search EHR systems"
+              className="bg-background pl-9"
+              disabled={listState.status !== 'success'}
+              autoFocus
+            />
+          </div>
         </div>
       </div>
 
