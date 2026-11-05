@@ -48,6 +48,7 @@ export function TargetTreeRow({
   const itemCount =
     node.children?.filter((child) => child.itemIndex !== undefined).length ?? 0;
   const isMapped = isBranch ? isGroup : node.source !== undefined;
+  const conditionCount = node.conditions?.length ?? 0;
 
   const handleClick = (): void => {
     if (isBranch) onToggle(node.path);
@@ -215,7 +216,7 @@ export function TargetTreeRow({
                 : 'text-muted-foreground hover:bg-background hover:text-foreground',
             )}
           >
-            <Split aria-hidden className="size-3.5 rotate-180" />
+            <Split aria-hidden className="size-3.5" />
           </button>
         </>
       )}
@@ -226,15 +227,29 @@ export function TargetTreeRow({
           <button
             type="button"
             onClick={() => onEditRules(node)}
-            aria-label={`Rules for ${node.label}`}
-            title={isGroup ? 'Group rules' : 'Object rules'}
+            aria-label={
+              conditionCount > 0
+                ? `Conditions for ${node.label} (${conditionCount})`
+                : `Conditions for ${node.label}`
+            }
+            title={
+              conditionCount > 0
+                ? `${conditionCount} ${conditionCount === 1 ? 'condition' : 'conditions'}`
+                : 'Conditions'
+            }
             className={cn(
               ICON_BUTTON_CLASS_NAME,
-              HOVER_REVEAL_CLASS_NAME,
-              'ml-auto text-muted-foreground hover:bg-background hover:text-foreground',
+              'ml-auto',
+              // Groups with conditions keep the button on show, tinted.
+              conditionCount > 0
+                ? 'bg-primary/10 text-primary hover:bg-primary/15'
+                : cn(
+                    HOVER_REVEAL_CLASS_NAME,
+                    'text-muted-foreground hover:bg-background hover:text-foreground',
+                  ),
             )}
           >
-            <Split aria-hidden className="size-3.5 rotate-180" />
+            <Split aria-hidden className="size-3.5" />
           </button>
           <TargetAddMenu
             node={node}

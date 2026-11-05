@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type JSX,
-} from 'react';
+import { useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { ChevronsDownUp, ChevronsUpDown, Search, SearchX } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -17,11 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { SourcePanelProps, SourceTreeNode } from '../../@types';
-import {
-  HL7_REF_PATTERN,
-  MANUAL_SOURCE_GROUP_REF,
-  SOURCE_SAMPLE_ACCEPT,
-} from '../../constants';
+import { HL7_REF_PATTERN, MANUAL_SOURCE_GROUP_REF } from '../../constants';
 import {
   collectBranchRefs,
   collectSourceFieldRefs,
@@ -63,7 +52,6 @@ export function SourcePanel({
   // Names given to fields added by ref (they aren't in the sample).
   const [manualLabels, setManualLabels] = useState<Record<string, string>>({});
   const [editingRef, setEditingRef] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   // Set when a row should be brought into view after the next render.
   const scrollToRef = useRef<string | null>(null);
 
@@ -171,14 +159,6 @@ export function SourcePanel({
     if (selectedRef === ref) setSelectedRef(null);
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const file = event.target.files?.[0];
-    if (file) onReplaceSample(file);
-    event.target.value = ''; // the same file can be picked again
-  };
-
-  const openFilePicker = (): void => fileInputRef.current?.click();
-
   const handleStartEdit = (ref: string): void => {
     setSelectedRef(ref);
     setEditingRef(ref);
@@ -234,16 +214,6 @@ export function SourcePanel({
         )}
       </header>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={SOURCE_SAMPLE_ACCEPT}
-        onChange={handleFileChange}
-        className="hidden"
-        tabIndex={-1}
-        aria-hidden
-      />
-
       {sample ? (
         <>
           <div className="shrink-0 space-y-2.5 p-3 pb-2">
@@ -251,7 +221,7 @@ export function SourcePanel({
               fileName={sample.fileName}
               caption="Sample message · values are for preview only"
               noun="sample"
-              onReplace={openFilePicker}
+              onReplace={onReplaceSample}
               onRemove={onRemoveSample}
             />
             <div className="flex items-center gap-2">
@@ -336,7 +306,8 @@ export function SourcePanel({
         <SampleEmptyState
           title="Add a sample message"
           description={`Upload a ${sourceLabel} message to see its fields. Its values are used only for the preview and are never saved.`}
-          onUpload={openFilePicker}
+          actionLabel="Add sample"
+          onUpload={onReplaceSample}
         />
       )}
     </section>

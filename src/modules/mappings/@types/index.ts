@@ -3,10 +3,13 @@ import type { NewMappingProjectFormValues } from '../components/new-project/sche
 import type { MappingTemplateFormValues } from '../components/template-dialog/schema';
 import type {
   MAPPING_FORMAT,
+  MAPPINGS_TAB,
   MAPPING_PROJECT_SORT,
   CATALOG_MODE,
   MAPPING_TEMPLATE_SORT,
   MAPPING_TEMPLATE_STATUS,
+  COMPARE_OPERATOR,
+  GROUP_CONDITION_KIND,
   TARGET_ADD_KIND,
   TARGET_FILTER,
   TARGET_VALUE_MODE,
@@ -239,6 +242,19 @@ export interface MappingProjectDetailScreenProps {
   onTemplatesChange: (projectId: string, templates: MappingTemplate[]) => void;
 }
 
+export interface MappingsSectionTabsProps {
+  /** Shown on the right of the strip, in line with the tabs */
+  actions?: ReactNode;
+  className?: string;
+}
+
+export interface MappingsSectionContentProps {
+  /** The view's own body, shown on the Mappings tab */
+  children: ReactNode;
+  className?: string;
+  filtersClassName?: string;
+}
+
 export interface MappingProjectHeaderProps {
   project: MappingProject;
   /** The loaded templates, for live stats; null while loading */
@@ -330,6 +346,10 @@ export interface TemplateEditorHeaderProps {
   template: MappingTemplate;
   onBack: () => void;
   onBackToProjects: () => void;
+}
+
+export interface TemplateEditorActionsProps {
+  template: MappingTemplate;
   /** Suggests source fields for unmapped target fields */
   onAutoMap: () => void;
   onSave: () => void;
@@ -373,7 +393,8 @@ export interface SourcePanelProps {
   sample: SourceSample | null;
   /** Refs that already feed a target field */
   mappedRefs: ReadonlySet<string>;
-  onReplaceSample: (file: File) => void;
+  /** Opens the Replace sample dialog */
+  onReplaceSample: () => void;
   onRemoveSample: () => void;
   /** Saves a new name for a field in the sample */
   onRenameField: (ref: string, label: string) => void;
@@ -433,6 +454,8 @@ export interface SampleFileBarProps {
 export interface SampleEmptyStateProps {
   title: string;
   description: string;
+  /** The button, e.g. "Upload sample" or "Add sample" */
+  actionLabel: string;
   onUpload: () => void;
 }
 
@@ -440,6 +463,8 @@ export interface ManualRefInputProps {
   /** Returns an error to show, or null when the ref was taken */
   onAdd: (ref: string) => string | null;
 }
+
+export type MappingsTab = (typeof MAPPINGS_TAB)[keyof typeof MAPPINGS_TAB];
 
 export type TargetView = (typeof TARGET_VIEW)[keyof typeof TARGET_VIEW];
 
@@ -478,6 +503,8 @@ export interface TargetTreeNode {
   customValue?: CustomValue;
   /** Leaf fields only: a Liquid expression worked out per message */
   expression?: string;
+  /** Branches only: written only when all of these hold */
+  conditions?: GroupCondition[];
   children?: TargetTreeNode[];
 }
 
@@ -488,7 +515,8 @@ export interface TargetSample {
 
 export interface TargetPanelProps {
   sample: TargetSample | null;
-  onReplaceSample: (file: File) => void;
+  /** Opens the target sample dialog */
+  onReplaceSample: () => void;
   onRemoveSample: () => void;
   onEditValue: (node: TargetTreeNode) => void;
   onEditRules: (node: TargetTreeNode) => void;
@@ -539,11 +567,6 @@ export interface MappingProgressProps {
   total: number;
 }
 
-export interface TargetViewPlaceholderProps {
-  title: string;
-  description: string;
-}
-
 export type JsonTokenKind =
   | 'key'
   | 'string'
@@ -573,10 +596,27 @@ export interface MappingLink {
   targetPath: string;
 }
 
+/** An auto-map guess: not a mapping until it's accepted. */
+export interface MappingSuggestion extends MappingLink {
+  sourceLabel: string;
+}
+
 export interface MappingWireLayerProps {
   links: MappingLink[];
+  /** Drawn as dashed amber threads; click one to accept or reject it */
+  suggestions: MappingSuggestion[];
   sourceTree: SourceTreeNode[];
   targetTree: TargetTreeNode[];
+  /** The × on a hovered thread */
+  onRemoveLink: (link: MappingLink) => void;
+  onAcceptSuggestion: (suggestion: MappingSuggestion) => void;
+  onRejectSuggestion: (suggestion: MappingSuggestion) => void;
+}
+
+export interface AutoMapBannerProps {
+  count: number;
+  onAcceptAll: () => void;
+  onDiscard: () => void;
 }
 
 export interface TargetAddMenuProps {
@@ -652,4 +692,238 @@ export interface TargetValueDialogProps {
 export interface ValueModeToggleProps {
   value: TargetValueMode;
   onChange: (mode: TargetValueMode) => void;
+}
+
+// ── Replace sample dialog ───────────────────────────────────────────────
+
+/** What the Replace sample dialog loads into the editor. */
+export interface SourceSampleSubmission {
+  messageType: string;
+  /** '' = any version */
+  messageVersion: string;
+  payload: string;
+  /** The author attested it's synthetic, so it's stored with the template */
+  saveWithTemplate: boolean;
+}
+
+export interface ReplaceSampleDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  inputType: TemplateInputType;
+  initialMessageType: string | null;
+  initialMessageVersion: string | null;
+  /** The payload the current sample came from, to edit or replace */
+  initialPayload: string;
+  initialSaveWithTemplate: boolean;
+  onLoad: (submission: SourceSampleSubmission) => void;
+}
+
+export type Hl7TokenKind =
+  | 'segment'
+  | 'field-separator'
+  | 'separator'
+  | 'value';
+
+export interface Hl7Token {
+  kind: Hl7TokenKind;
+  text: string;
+}
+
+export interface CodeEditorProps {
+  id?: string;
+  value: string;
+  /** Omit with readOnly */
+  onChange?: (value: string) => void;
+  /** HL7, JSON and Liquid are coloured; plain isn't */
+  language: CodeLanguage;
+  placeholder?: string;
+  invalid?: boolean;
+  readOnly?: boolean;
+  showLineNumbers?: boolean;
+  describedBy?: string;
+  /** When no <Label> points at the editor */
+  ariaLabel?: string;
+  /** Sets the height (default h-60) */
+  className?: string;
+}
+
+export type CodeLanguage = 'hl7' | 'json' | 'liquid' | 'plain';
+
+export type LiquidTokenKind =
+  | JsonTokenKind
+  | 'delimiter'
+  | 'keyword'
+  | 'filter'
+  | 'variable';
+
+export interface LiquidToken {
+  kind: LiquidTokenKind;
+  text: string;
+}
+
+/** A repeating group's own Liquid, compiled apart from the base template. */
+export interface LiquidRepeatSection {
+  /** The source segment it loops over, e.g. "NTE" */
+  sourceSegment: string;
+  /** The target array it fills, e.g. "notes" */
+  targetPath: string;
+  code: string;
+}
+
+export interface LiquidCodePanelProps {
+  code: string;
+  /** Omit for a read-only panel */
+  onChange?: (code: string) => void;
+  /** Names the code for screen readers and the full-screen title */
+  label: string;
+  onOpenFullScreen: () => void;
+}
+
+export interface LiquidFullScreenDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: ReactNode;
+  code: string;
+  /** Omit for read-only */
+  onChange?: (code: string) => void;
+}
+
+/** What the target sample dialog loads into the editor. */
+export interface TargetSampleSubmission {
+  payload: string;
+  /** FHIR resources picked to start from; more than one builds a Bundle */
+  resources: string[];
+  saveWithTemplate: boolean;
+  /** Unmapped fields keep the sample's values (needs saveWithTemplate) */
+  useAsOutputTemplate: boolean;
+}
+
+export interface TargetSampleDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** Titles the dialog "Replace…" rather than "Add…" */
+  hasSample: boolean;
+  /** The template's message type, for the suggestion line */
+  messageType: string | null;
+  /** Only a JSON output can be built on its sample */
+  canUseAsOutputTemplate: boolean;
+  initialPayload: string;
+  initialSaveWithTemplate: boolean;
+  initialUseAsOutputTemplate: boolean;
+  onLoad: (submission: TargetSampleSubmission) => void;
+}
+
+export interface FhirResourcePickerProps {
+  options: string[];
+  selected: string[];
+  onToggle: (resource: string) => void;
+}
+
+// ── Group conditions ────────────────────────────────────────────────────
+
+export type GroupConditionKind =
+  (typeof GROUP_CONDITION_KIND)[keyof typeof GROUP_CONDITION_KIND];
+
+export type CompareOperator =
+  (typeof COMPARE_OPERATOR)[keyof typeof COMPARE_OPERATOR];
+
+/**
+ * One rule a group must pass to be written. Every kind's inputs live on the
+ * one object, so switching kind keeps what was already typed.
+ */
+export interface GroupCondition {
+  id: string;
+  kind: GroupConditionKind;
+  /** Source field the condition reads (present / compare) */
+  ref: string;
+  operator: CompareOperator;
+  value: string;
+  /** Raw Liquid condition */
+  liquid: string;
+}
+
+export interface GroupConditionsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** The group or object the conditions are for; kept while it closes */
+  node: TargetTreeNode | null;
+  onSave: (path: string, conditions: GroupCondition[]) => void;
+}
+
+export interface ConditionCardProps {
+  condition: GroupCondition;
+  /** 1-based, for the card's label */
+  position: number;
+  onChange: (patch: Partial<GroupCondition>) => void;
+  onRemove: () => void;
+  /** Put the cursor in the card's first box (a card just added) */
+  autoFocus: boolean;
+}
+
+// ── Table view ──────────────────────────────────────────────────────────
+
+/** Where a table row's value comes from: a source ref, or an expression. */
+export type TableSourceMode = 'ref' | 'expression';
+
+/** For a repeating segment: every occurrence (loop) or one by number. */
+export type OccurrenceMode = 'all' | 'specific';
+
+/** One mapping as a table row. */
+export interface MappingTableRow {
+  id: string;
+  mode: TableSourceMode;
+  /** Ref mode: the source field, e.g. ORC.2.1, and its name */
+  sourceRef: string;
+  sourceLabel: string;
+  /** Expression mode: Liquid that produces the value */
+  expression: string;
+  targetPath: string;
+  targetLabel: string;
+  /** Shown only for a segment that can repeat; null hides the picker */
+  occurrence: OccurrenceMode | null;
+  /** 1-based, used when occurrence is "specific" */
+  occurrenceIndex: number;
+  /** Rules applied on the way, as their short names */
+  rules: string[];
+  /** Several sources feed this target: which one this is */
+  multiSource?: { position: number; total: number };
+}
+
+/** A repeating group's rows: one item per source segment. */
+export interface MappingTableGroup {
+  id: string;
+  sourceSegment: string;
+  targetPath: string;
+  rows: MappingTableRow[];
+}
+
+export interface TableMappingRowProps {
+  row: MappingTableRow;
+  onChange: (patch: Partial<MappingTableRow>) => void;
+  onRemove: () => void;
+  onEditRules: () => void;
+}
+
+export interface SourceModeToggleProps {
+  value: TableSourceMode;
+  onChange: (mode: TableSourceMode) => void;
+  /** Names the row for screen readers */
+  rowLabel: string;
+}
+
+export interface OccurrencePickerProps {
+  mode: OccurrenceMode;
+  index: number;
+  onChange: (patch: { mode?: OccurrenceMode; index?: number }) => void;
+  rowLabel: string;
+}
+
+export interface TableFieldBoxProps {
+  /** The field's name; empty while the row is being filled in */
+  label: string;
+  /** The source ref or target path */
+  code: string;
+  placeholder: string;
+  ariaLabel: string;
+  onType: (value: string) => void;
 }

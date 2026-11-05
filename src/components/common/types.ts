@@ -114,7 +114,8 @@ export interface CopyIconButtonProps {
 export interface FormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string;
+  /** Usually text; may hold markup such as an icon or a code-styled name */
+  title: ReactNode;
   description?: ReactNode;
   /** Wire to react-hook-form's handleSubmit */
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;

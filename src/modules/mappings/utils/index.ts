@@ -1,5 +1,6 @@
 import type {
   MappingFormat,
+  MappingsTab,
   MappingTemplate,
   MappingTemplateSort,
   MappingProject,
@@ -10,15 +11,23 @@ import type {
   TargetTreeNode,
   TargetValueChange,
   CustomValue,
+  GroupCondition,
   CustomValueType,
+  Hl7Token,
   JsonToken,
+  LiquidToken,
   MappingLink,
+  MappingSuggestion,
 } from '../@types';
 import {
   MAPPING_FORMAT,
+  MAPPINGS_TAB,
   MAPPING_PROJECT_SORT,
   TEMPLATE_INPUT_TYPE,
   MAPPING_TEMPLATE_SORT,
+  GROUP_CONDITION_KIND,
+  HL7_REF_PATTERN,
+  COMPARE_OPERATOR,
   TARGET_FILTER,
   TARGET_KEY_PATTERN,
 } from '../constants';
@@ -57,6 +66,10 @@ export function sortMappingProjects(
         return b.updatedAt.localeCompare(a.updatedAt) || byName(a, b);
     }
   });
+}
+
+export function isMappingsTab(value: string): value is MappingsTab {
+  return Object.values<string>(MAPPINGS_TAB).includes(value);
 }
 
 export function isMappingFormat(value: unknown): value is MappingFormat {
@@ -616,4 +629,312 @@ export function applyTargetValue(
       ? { ...node, children: applyTargetValue(node.children, path, change) }
       : node;
   });
+}
+
+// ── HL7 payload ─────────────────────────────────────────────────────────
+
+/** Splits one HL7 segment line for colouring: id, separators, values. */
+export function tokenizeHl7Line(line: string): Hl7Token[] {
+  const match = /^([A-Z][A-Z0-9]{2})(?=\||$)/.exec(line);
+  const tokens: Hl7Token[] = match ? [{ kind: 'segment', text: match[1] }] : [];
+  const rest = match ? line.slice(match[1].length) : line;
+  for (const part of rest.split(/([|^~\\&])/)) {
+    if (!part) continue;
+    tokens.push({
+      kind:
+        part === '|'
+          ? 'field-separator'
+          : '^~\\&'.includes(part) && part.length === 1
+            ? 'separator'
+            : 'value',
+      text: part,
+    });
+  }
+  return tokens;
+}
+
+/** One segment per line, no blank lines, whatever line endings it came with. */
+export function formatHl7Payload(payload: string): string {
+  return payload
+    .split(/\r\n|\r|\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join('\n');
+}
+
+/** Why `payload` can't be loaded as HL7, or null when it looks right. */
+export function validateHl7Payload(payload: string): string | null {
+  const firstLine = formatHl7Payload(payload).split('\n')[0] ?? '';
+  if (!firstLine) return null; // empty is handled by the submit button
+  return firstLine.startsWith('MSH')
+    ? null
+    : 'An HL7 message starts with its MSH segment.';
+}
+
+// ── JSON payload ────────────────────────────────────────────────────────
+
+/** Why `payload` isn't a usable JSON sample, or null when it is (or is empty). */
+export function validateJsonPayload(payload: string): string | null {
+  if (!payload.trim()) return null; // empty is handled by the submit button
+  try {
+    const parsed: unknown = JSON.parse(payload);
+    return parsed !== null &&
+      typeof parsed === 'object' &&
+      !Array.isArray(parsed)
+      ? null
+      : 'The sample must be a JSON object, e.g. { "id": "" }.';
+  } catch {
+    return 'This isn’t valid JSON yet — check for a missing comma, quote or bracket.';
+  }
+}
+
+/** Indented two spaces; left as typed when it isn't valid JSON. */
+export function formatJsonPayload(payload: string): string {
+  try {
+    return JSON.stringify(JSON.parse(payload), null, 2);
+  } catch {
+    return payload;
+  }
+}
+
+// ── Group conditions ────────────────────────────────────────────────────
+
+/** A fresh, empty condition ("is present" is the most common). */
+export function createGroupCondition(): GroupCondition {
+  return {
+    id: crypto.randomUUID(),
+    kind: GROUP_CONDITION_KIND.PRESENT,
+    ref: '',
+    operator: COMPARE_OPERATOR.EQUALS,
+    value: '',
+    liquid: '',
+  };
+}
+
+/** What still needs fixing in a condition, or null when it's ready to save. */
+export function groupConditionProblem(condition: GroupCondition): {
+  /** True when something is just missing (not shown as an error) */
+  isMissing: boolean;
+  message: string;
+} | null {
+  if (condition.kind === GROUP_CONDITION_KIND.LIQUID) {
+    return condition.liquid.trim()
+      ? null
+      : { isMissing: true, message: 'Enter a Liquid condition.' };
+  }
+  const ref = condition.ref.trim();
+  if (!ref) return { isMissing: true, message: 'Enter a field ref.' };
+  if (!HL7_REF_PATTERN.test(ref.toUpperCase())) {
+    return {
+      isMissing: false,
+      message: 'Use a ref like PID.8 or ORC.7.4 — segment, then field numbers.',
+    };
+  }
+  if (
+    condition.kind === GROUP_CONDITION_KIND.COMPARE &&
+    !condition.value.trim()
+  ) {
+    return { isMissing: true, message: 'Enter a value to compare with.' };
+  }
+  return null;
+}
+
+/** The path a branch's conditions apply to: a list's item, else the branch. */
+export function conditionsPathOf(node: TargetTreeNode): string {
+  const isList = node.repeatSource !== undefined || node.isList === true;
+  return isList && node.itemIndex === undefined ? `${node.path}[0]` : node.path;
+}
+
+/** The tree with the branch at `path` given these conditions (none = cleared). */
+export function setTargetConditions(
+  nodes: TargetTreeNode[],
+  path: string,
+  conditions: GroupCondition[],
+): TargetTreeNode[] {
+  return nodes.map((node) => {
+    if (node.path === path) {
+      return {
+        ...node,
+        conditions: conditions.length > 0 ? conditions : undefined,
+      };
+    }
+    return node.children
+      ? {
+          ...node,
+          children: setTargetConditions(node.children, path, conditions),
+        }
+      : node;
+  });
+}
+
+// ── Liquid ──────────────────────────────────────────────────────────────
+
+const LIQUID_REGION_PATTERN = /(\{%-?[\s\S]*?-?%\}|\{\{-?[\s\S]*?-?\}\})/;
+
+const LIQUID_KEYWORDS = new Set([
+  'assign',
+  'capture',
+  'endcapture',
+  'if',
+  'elsif',
+  'else',
+  'endif',
+  'unless',
+  'endunless',
+  'for',
+  'in',
+  'endfor',
+  'case',
+  'when',
+  'endcase',
+  'and',
+  'or',
+  'contains',
+  'break',
+  'continue',
+]);
+
+/** Tokens inside one {{ … }} or {% … %}: delimiters, keywords, filters, strings. */
+function tokenizeLiquidTag(tag: string): LiquidToken[] {
+  const tokens: LiquidToken[] = [];
+  const pattern =
+    /(\{%-?|-?%\}|\{\{-?|-?\}\})|('[^']*'|"[^"]*")|(\|)(\s*)([A-Za-z_]\w*)|(-?\d+(?:\.\d+)?)|([A-Za-z_][\w.]*)|(\s+|.)/g;
+  for (const m of tag.matchAll(pattern)) {
+    const [, delimiter, str, pipe, gap, filter, num, word, other] = m;
+    if (delimiter) tokens.push({ kind: 'delimiter', text: delimiter });
+    else if (str) tokens.push({ kind: 'string', text: str });
+    else if (pipe) {
+      tokens.push({ kind: 'punctuation', text: pipe });
+      if (gap) tokens.push({ kind: 'plain', text: gap });
+      tokens.push({ kind: 'filter', text: filter ?? '' });
+    } else if (num) tokens.push({ kind: 'number', text: num });
+    else if (word) {
+      tokens.push({
+        kind: LIQUID_KEYWORDS.has(word) ? 'keyword' : 'variable',
+        text: word,
+      });
+    } else tokens.push({ kind: 'plain', text: other ?? '' });
+  }
+  return tokens;
+}
+
+/** Splits one line of Liquid-in-JSON: Liquid tags, and the JSON around them. */
+export function tokenizeLiquidLine(line: string): LiquidToken[] {
+  return line
+    .split(LIQUID_REGION_PATTERN)
+    .filter(Boolean)
+    .flatMap((part) =>
+      LIQUID_REGION_PATTERN.test(part)
+        ? tokenizeLiquidTag(part)
+        : tokenizeJsonLine(part),
+    );
+}
+
+/**
+ * The tree without one thread: a field loses its source (and the rules on
+ * it), a group stops looping over the segment.
+ */
+export function removeTargetLink(
+  nodes: TargetTreeNode[],
+  link: MappingLink,
+): TargetTreeNode[] {
+  return nodes.map((node) => {
+    if (node.path === link.targetPath) {
+      if (node.children) {
+        return node.repeatSource === link.sourceRef
+          ? { ...node, repeatSource: undefined }
+          : node;
+      }
+      return node.source?.ref === link.sourceRef
+        ? { ...node, source: undefined, hasRules: false }
+        : node;
+    }
+    return node.children
+      ? { ...node, children: removeTargetLink(node.children, link) }
+      : node;
+  });
+}
+
+/** "Date/Time of Message" → "datetimeofmessage", so names compare loosely. */
+const matchKeyOf = (text: string): string =>
+  text.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const collectSourceLeaves = (nodes: SourceTreeNode[]): SourceTreeNode[] =>
+  nodes.flatMap((node) =>
+    node.children ? collectSourceLeaves(node.children) : [node],
+  );
+
+const collectOpenTargetLeaves = (nodes: TargetTreeNode[]): TargetTreeNode[] =>
+  nodes.flatMap((node) => {
+    if (node.children) return collectOpenTargetLeaves(node.children);
+    return hasTargetValue(node) ? [] : [node];
+  });
+
+/**
+ * MOCK: stands in for the real auto-mapper. Pairs each target field that has
+ * no value with a source field of the same name, preferring source fields
+ * that don't feed anything yet. One guess per target field.
+ */
+export function suggestMappings(
+  sourceTree: SourceTreeNode[],
+  targetTree: TargetTreeNode[],
+): MappingSuggestion[] {
+  const used = new Set(collectMappingLinks(targetTree).map((l) => l.sourceRef));
+  const sources = collectSourceLeaves(sourceTree);
+  return collectOpenTargetLeaves(targetTree).flatMap(
+    (target): MappingSuggestion[] => {
+      const keys = [target.label, targetKeyOf(target.path)].map(matchKeyOf);
+      const matches = sources.filter((source) =>
+        keys.includes(matchKeyOf(source.label)),
+      );
+      const best =
+        matches.find((source) => !used.has(source.ref)) ?? matches[0];
+      if (!best) return [];
+      used.add(best.ref);
+      return [
+        {
+          sourceRef: best.ref,
+          sourceLabel: best.label,
+          targetPath: target.path,
+        },
+      ];
+    },
+  );
+}
+
+/** The tree with each suggestion turned into a real mapping. */
+export function applyMappingSuggestions(
+  nodes: TargetTreeNode[],
+  suggestions: MappingSuggestion[],
+): TargetTreeNode[] {
+  return nodes.map((node) => {
+    if (node.children) {
+      return {
+        ...node,
+        children: applyMappingSuggestions(node.children, suggestions),
+      };
+    }
+    const suggestion = suggestions.find((s) => s.targetPath === node.path);
+    return suggestion
+      ? {
+          ...node,
+          source: { ref: suggestion.sourceRef, label: suggestion.sourceLabel },
+        }
+      : node;
+  });
+}
+
+/** Suggestions whose target field still exists and still has no value. */
+export function openMappingSuggestions(
+  nodes: TargetTreeNode[],
+  suggestions: MappingSuggestion[],
+): MappingSuggestion[] {
+  return suggestions.filter((suggestion) => {
+    const node = findTargetNode(nodes, suggestion.targetPath);
+    return node !== null && !node.children && !hasTargetValue(node);
+  });
+}
+
+export function isSameMappingLink(a: MappingLink, b: MappingLink): boolean {
+  return a.sourceRef === b.sourceRef && a.targetPath === b.targetPath;
 }

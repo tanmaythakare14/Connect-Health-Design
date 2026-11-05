@@ -1,11 +1,4 @@
-import {
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type JSX,
-  type ReactNode,
-} from 'react';
+import { useMemo, useState, type JSX, type ReactNode } from 'react';
 import {
   ChevronsDownUp,
   ChevronsUpDown,
@@ -32,12 +25,7 @@ import type {
   TargetTreeNode,
   TargetView,
 } from '../../@types';
-import {
-  TARGET_ADD_KIND,
-  TARGET_FILTER,
-  TARGET_SAMPLE_ACCEPT,
-  TARGET_VIEW,
-} from '../../constants';
+import { TARGET_ADD_KIND, TARGET_FILTER, TARGET_VIEW } from '../../constants';
 import {
   collectTargetBranchPaths,
   countTargetFields,
@@ -48,12 +36,13 @@ import {
   targetKeyOf,
 } from '../../utils';
 import { SampleEmptyState, SampleFileBar } from '../shared';
+import { LiquidView } from '../liquid-view';
+import { TableView } from '../table-view';
 import { MappingProgress } from './MappingProgress';
 import { TargetAddFieldForm } from './TargetAddFieldForm';
 import { TargetAddGroupForm } from './TargetAddGroupForm';
 import { TargetFilterToggle } from './TargetFilterToggle';
 import { TargetTree } from './TargetTree';
-import { TargetViewPlaceholder } from './TargetViewPlaceholder';
 
 const TARGET_VIEW_TABS: Array<{ value: TargetView; label: string }> = [
   { value: TARGET_VIEW.FIELDS, label: 'Target' },
@@ -90,7 +79,6 @@ export function TargetPanel({
   );
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [adding, setAdding] = useState<TargetAdding | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // A new sample file starts fully open, with nothing selected. Edits to
   // the tree (adding, deleting) keep what was collapsed and open new branches.
@@ -126,14 +114,6 @@ export function TargetPanel({
       return next;
     });
   };
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const file = event.target.files?.[0];
-    if (file) onReplaceSample(file);
-    event.target.value = ''; // the same file can be picked again
-  };
-
-  const openFilePicker = (): void => fileInputRef.current?.click();
 
   /** The + menu on a branch: open the matching inline form, or copy an item. */
   const handleAddRequest = (
@@ -223,7 +203,8 @@ export function TargetPanel({
         <SampleEmptyState
           title="Add a target sample"
           description="Upload a JSON example of the output. Its fields become the targets you map onto."
-          onUpload={openFilePicker}
+          actionLabel="Add sample"
+          onUpload={onReplaceSample}
         />
       );
     }
@@ -235,7 +216,7 @@ export function TargetPanel({
             fileName={sample.fileName}
             caption="Target sample · shapes the output"
             noun="target sample"
-            onReplace={openFilePicker}
+            onReplace={onReplaceSample}
             onRemove={onRemoveSample}
           />
           <div className="flex items-center gap-2">
@@ -369,16 +350,6 @@ export function TargetPanel({
         {sample && <MappingProgress mapped={mapped} total={total} />}
       </header>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={TARGET_SAMPLE_ACCEPT}
-        onChange={handleFileChange}
-        className="hidden"
-        tabIndex={-1}
-        aria-hidden
-      />
-
       <TabsContent
         value={TARGET_VIEW.FIELDS}
         className="mt-0 flex min-h-0 flex-1 flex-col"
@@ -389,19 +360,13 @@ export function TargetPanel({
         value={TARGET_VIEW.TABLE}
         className="mt-0 flex min-h-0 flex-1 flex-col"
       >
-        <TargetViewPlaceholder
-          title="Table view"
-          description="Every mapping as a row: target, source and rules side by side."
-        />
+        <TableView />
       </TabsContent>
       <TabsContent
         value={TARGET_VIEW.LIQUID}
         className="mt-0 flex min-h-0 flex-1 flex-col"
       >
-        <TargetViewPlaceholder
-          title="Liquid view"
-          description="The Liquid template these mappings produce."
-        />
+        <LiquidView />
       </TabsContent>
     </Tabs>
   );

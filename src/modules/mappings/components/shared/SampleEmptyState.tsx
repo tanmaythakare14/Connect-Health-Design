@@ -7,6 +7,7 @@ import type { SampleEmptyStateProps } from '../../@types';
 export function SampleEmptyState({
   title,
   description,
+  actionLabel,
   onUpload,
 }: SampleEmptyStateProps): JSX.Element {
   return (
@@ -23,7 +24,7 @@ export function SampleEmptyState({
       </div>
       <Button type="button" size="sm" onClick={onUpload}>
         <Upload aria-hidden />
-        Upload sample
+        {actionLabel}
       </Button>
     </div>
   );

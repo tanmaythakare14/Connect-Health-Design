@@ -49,6 +49,10 @@ import {
 } from '../../service';
 import { filterMappingTemplates, sortMappingTemplates } from '../../utils';
 import { MappingProjectCardSkeleton } from '../mapping-project-card';
+import {
+  MappingsSectionContent,
+  MappingsSectionTabs,
+} from '../mappings-section';
 import { ListToolbar } from '../shared';
 import { MappingTemplateCard } from '../template-card';
 import { MappingTemplateDialog } from '../template-dialog';
@@ -363,68 +367,73 @@ export function MappingProjectDetailScreen({
         </BreadcrumbList>
       </Breadcrumb>
 
-      <MappingProjectHeader
-        project={project}
-        templates={listState.status === 'success' ? listState.data : null}
-      />
+      {/* Full width: cancel out the page padding */}
+      <MappingsSectionTabs className="-mx-6 border-t" />
 
-      <section
-        aria-labelledby="mapping-templates-heading"
-        className="space-y-4"
-      >
-        <div className="space-y-0.5 border-t pt-6">
-          <h2
-            id="mapping-templates-heading"
-            className="text-lg font-semibold tracking-tight text-foreground"
-          >
-            Templates
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Each template maps one kind of message. The Mapper node picks the
-            one that matches the incoming message.
-          </p>
-        </div>
-
-        <ListToolbar
-          search={search}
-          onSearchChange={handleSearchChange}
-          searchPlaceholder="Search templates"
-          sort={sort}
-          sortOptions={MAPPING_TEMPLATE_SORT_OPTIONS}
-          onSortChange={handleSortChange}
-          count={
-            listState.status === 'success' ? visibleTemplates.length : null
-          }
-          countNoun={{ one: 'template', other: 'templates' }}
-          disabled={listState.status !== 'success'}
-          actions={
-            <Button
-              onClick={handleAddTemplate}
-              disabled={listState.status !== 'success'}
-            >
-              <Plus aria-hidden />
-              Add Template
-            </Button>
-          }
+      <MappingsSectionContent className="space-y-6">
+        <MappingProjectHeader
+          project={project}
+          templates={listState.status === 'success' ? listState.data : null}
         />
 
-        {renderContent()}
+        <section
+          aria-labelledby="mapping-templates-heading"
+          className="space-y-4"
+        >
+          <div className="space-y-0.5 border-t pt-6">
+            <h2
+              id="mapping-templates-heading"
+              className="text-lg font-semibold tracking-tight text-foreground"
+            >
+              Templates
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Each template maps one kind of message. The Mapper node picks the
+              one that matches the incoming message.
+            </p>
+          </div>
 
-        {listState.status === 'success' &&
-          visibleTemplates.length > PAGINATION_THRESHOLD && (
-            <div className="rounded-lg border bg-card">
-              <TablePagination
-                page={currentPage}
-                pageSize={pageSize}
-                totalItems={visibleTemplates.length}
-                itemLabel="templates"
-                pageSizeOptions={PAGE_SIZE_OPTIONS}
-                onPageChange={setPage}
-                onPageSizeChange={handlePageSizeChange}
-              />
-            </div>
-          )}
-      </section>
+          <ListToolbar
+            search={search}
+            onSearchChange={handleSearchChange}
+            searchPlaceholder="Search templates"
+            sort={sort}
+            sortOptions={MAPPING_TEMPLATE_SORT_OPTIONS}
+            onSortChange={handleSortChange}
+            count={
+              listState.status === 'success' ? visibleTemplates.length : null
+            }
+            countNoun={{ one: 'template', other: 'templates' }}
+            disabled={listState.status !== 'success'}
+            actions={
+              <Button
+                onClick={handleAddTemplate}
+                disabled={listState.status !== 'success'}
+              >
+                <Plus aria-hidden />
+                Add Template
+              </Button>
+            }
+          />
+
+          {renderContent()}
+
+          {listState.status === 'success' &&
+            visibleTemplates.length > PAGINATION_THRESHOLD && (
+              <div className="rounded-lg border bg-card">
+                <TablePagination
+                  page={currentPage}
+                  pageSize={pageSize}
+                  totalItems={visibleTemplates.length}
+                  itemLabel="templates"
+                  pageSizeOptions={PAGE_SIZE_OPTIONS}
+                  onPageChange={setPage}
+                  onPageSizeChange={handlePageSizeChange}
+                />
+              </div>
+            )}
+        </section>
+      </MappingsSectionContent>
 
       <MappingTemplateDialog
         open={isTemplateDialogOpen}

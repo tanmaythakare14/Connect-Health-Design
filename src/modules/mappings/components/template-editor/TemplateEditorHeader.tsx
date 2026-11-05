@@ -1,6 +1,4 @@
 import type { JSX } from 'react';
-import { Check, Loader2, Save, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,24 +8,16 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import type { TemplateEditorHeaderProps } from '../../@types';
-import { TemplateFormatFlow, TemplateStatusIndicator } from '../template-card';
 
 const CRUMB_BUTTON_CLASS_NAME =
   'rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
 
-/**
- * Where you are (Mappings / project / template), what the template converts,
- * and the editor's actions: Auto-map and Save.
- */
+/** Where you are: Mappings / project / template. The crumbs are the way back. */
 export function TemplateEditorHeader({
   project,
   template,
   onBack,
   onBackToProjects,
-  onAutoMap,
-  onSave,
-  hasUnsavedChanges,
-  isSaving,
 }: TemplateEditorHeaderProps): JSX.Element {
   return (
     <header className="flex h-12 shrink-0 items-center gap-3 border-b bg-background px-4">
@@ -74,41 +64,6 @@ export function TemplateEditorHeader({
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-
-      <div className="hidden shrink-0 items-center gap-4 text-xs md:flex">
-        <TemplateFormatFlow
-          inputType={template.inputType}
-          outputType={template.outputType}
-          messageType={template.messageType}
-          messageVersion={template.messageVersion}
-        />
-        <span aria-hidden className="h-4 w-px bg-border" />
-        <TemplateStatusIndicator status={template.status} />
-        <span aria-hidden className="h-5 w-px bg-border" />
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={onAutoMap}>
-          <Sparkles aria-hidden className="text-primary" />
-          Auto-map fields
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          onClick={onSave}
-          disabled={!hasUnsavedChanges || isSaving}
-          className="min-w-20"
-        >
-          {isSaving ? (
-            <Loader2 aria-hidden className="animate-spin" />
-          ) : hasUnsavedChanges ? (
-            <Save aria-hidden />
-          ) : (
-            <Check aria-hidden />
-          )}
-          {isSaving ? 'Saving…' : hasUnsavedChanges ? 'Save' : 'Saved'}
-        </Button>
-      </div>
     </header>
   );
 }

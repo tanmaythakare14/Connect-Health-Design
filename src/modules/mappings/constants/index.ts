@@ -5,7 +5,10 @@ import type {
   MappingTemplateSort,
   MappingTemplateStatus,
   SortOption,
+  CompareOperator,
   CustomValueType,
+  GroupConditionKind,
+  JsonTokenKind,
   SourceValueType,
   TemplateCatalogInputType,
   TemplateInputType,
@@ -283,10 +286,14 @@ export const MAPPING_TEMPLATE_VERSION_MAX_LENGTH = 20;
 /** "PID.5.1", "ORC.7.4", "ZPD.1" — segment id, then field/component numbers. */
 export const HL7_REF_PATTERN = /^[A-Z][A-Z0-9]{2}(\.\d+){1,3}$/;
 
-export const SOURCE_SAMPLE_ACCEPT = '.hl7,.txt';
-
 /** Ref of the group that collects fields added by hand. */
 export const MANUAL_SOURCE_GROUP_REF = '__manual__';
+
+/** The Mappings screen's line tabs. */
+export const MAPPINGS_TAB = {
+  MAPPINGS: 'mappings',
+  FILTERS: 'filters',
+} as const;
 
 export const TARGET_VIEW = {
   FIELDS: 'fields',
@@ -298,8 +305,6 @@ export const TARGET_FILTER = {
   ALL: 'all',
   NEEDED: 'needed',
 } as const;
-
-export const TARGET_SAMPLE_ACCEPT = '.json';
 
 /** A target key: a JSON-friendly name like middleName or address_2. */
 export const TARGET_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -334,3 +339,162 @@ export const CUSTOM_VALUE_TYPE_OPTIONS: Array<{
   { value: 'number', label: 'Number' },
   { value: 'boolean', label: 'True / false' },
 ];
+
+/**
+ * A short, synthetic starter message per input type for "Load example" in the
+ * Replace sample dialog. String.raw keeps HL7's encoding characters (^~\&).
+ */
+export const SAMPLE_PAYLOAD_EXAMPLES: Partial<
+  Record<TemplateInputType, string>
+> = {
+  hl7: String.raw`MSH|^~\&|CPOE|HOSP|LAB|LABFAC|20240115120000||ORM^O01|MSG00009|P|2.5
+PID|1||SYN12345^^^HOSP^MR||Doe^John^A||19800101|M
+ORC|NW|ORD789|||||||20240115120000|||DR001^Smith^Jane
+OBR|1|ORD789||CBC^Complete Blood Count^L|||20240115120000`,
+};
+
+/** FHIR resources a target sample can start from, most used first. */
+export const FHIR_RESOURCE_TYPES: string[] = [
+  'ServiceRequest',
+  'Patient',
+  'Encounter',
+  'Observation',
+  'Appointment',
+  'DiagnosticReport',
+  'MedicationRequest',
+  'Immunization',
+  'DocumentReference',
+  'Coverage',
+  'Claim',
+  'ClaimResponse',
+  'Task',
+  'PaymentReconciliation',
+  'Condition',
+  'AllergyIntolerance',
+  'MedicationStatement',
+  'Procedure',
+  'Account',
+  'OperationOutcome',
+];
+
+/** JSON colouring, shared by the live output and the sample editor. */
+export const JSON_TOKEN_CLASS_NAMES: Record<JsonTokenKind, string> = {
+  key: 'text-primary',
+  string: 'text-emerald-700 dark:text-emerald-400',
+  number: 'text-amber-700 dark:text-amber-400',
+  literal: 'text-sky-700 dark:text-sky-400',
+  punctuation: 'text-muted-foreground',
+  plain: '',
+};
+
+/** The resource "Start a FHIR Bundle" builds around (and picks). */
+export const FHIR_BUNDLE_STARTER_RESOURCE = 'Patient';
+
+/**
+ * What "Start a FHIR Bundle" puts in the target sample: a collection Bundle
+ * with a synthetic Patient entry, plus a ServiceRequest under the
+ * `entry[@ServiceRequest]` key the mapper uses for a typed entry list.
+ */
+export const FHIR_BUNDLE_STARTER = JSON.stringify(
+  {
+    resourceType: 'Bundle',
+    type: 'collection',
+    entry: [
+      {
+        resource: {
+          resourceType: 'Patient',
+          identifier: [{ system: 'urn:mrn', value: 'SYNTH001' }],
+          name: [{ family: 'TestFamily', given: ['TestGiven'] }],
+          gender: 'male',
+          birthDate: '1980-01-01',
+          address: [
+            {
+              line: ['1 Synthetic St'],
+              city: 'Testville',
+              state: 'CA',
+              postalCode: '00000',
+            },
+          ],
+          telecom: [{ system: 'phone', value: '555-0100' }],
+        },
+      },
+    ],
+    'entry[@ServiceRequest]': [
+      {
+        resource: {
+          resourceType: 'ServiceRequest',
+          status: 'active',
+          intent: 'order',
+          code: {
+            coding: [
+              {
+                system: 'http://loinc.org',
+                code: '58410-2',
+                display: 'CBC panel',
+              },
+            ],
+          },
+          subject: { reference: 'Patient/example' },
+          authoredOn: '2026-01-01T09:00:00Z',
+        },
+      },
+    ],
+  },
+  null,
+  2,
+);
+
+// ── Group conditions ────────────────────────────────────────────────────
+
+export const GROUP_CONDITION_KIND = {
+  PRESENT: 'present',
+  COMPARE: 'compare',
+  LIQUID: 'liquid',
+} as const;
+
+export const GROUP_CONDITION_KIND_OPTIONS: Array<{
+  value: GroupConditionKind;
+  label: string;
+  /** One line under the picker saying what the condition does */
+  hint: string;
+}> = [
+  {
+    value: GROUP_CONDITION_KIND.PRESENT,
+    label: 'Skip if empty (is present)',
+    hint: 'Written only when this source field has a value.',
+  },
+  {
+    value: GROUP_CONDITION_KIND.COMPARE,
+    label: 'Compare value',
+    hint: 'Written only when the source field compares as set.',
+  },
+  {
+    value: GROUP_CONDITION_KIND.LIQUID,
+    label: 'Raw Liquid condition',
+    hint: 'Written only when this Liquid condition is true.',
+  },
+];
+
+export const COMPARE_OPERATOR = {
+  EQUALS: 'equals',
+  NOT_EQUALS: 'not-equals',
+  CONTAINS: 'contains',
+  STARTS_WITH: 'starts-with',
+  GREATER_THAN: 'greater-than',
+  LESS_THAN: 'less-than',
+} as const;
+
+export const COMPARE_OPERATOR_OPTIONS: Array<{
+  value: CompareOperator;
+  label: string;
+}> = [
+  { value: COMPARE_OPERATOR.EQUALS, label: 'equals' },
+  { value: COMPARE_OPERATOR.NOT_EQUALS, label: 'does not equal' },
+  { value: COMPARE_OPERATOR.CONTAINS, label: 'contains' },
+  { value: COMPARE_OPERATOR.STARTS_WITH, label: 'starts with' },
+  { value: COMPARE_OPERATOR.GREATER_THAN, label: 'is greater than' },
+  { value: COMPARE_OPERATOR.LESS_THAN, label: 'is less than' },
+];
+
+/** Above this many conditions the list scrolls instead of growing. */
+export const MAX_VISIBLE_CONDITIONS = 3;

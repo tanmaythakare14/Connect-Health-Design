@@ -42,7 +42,10 @@ export function FormDialog({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <form onSubmit={onSubmit} noValidate className="space-y-5">
+        {/* min-w-0: DialogContent is a grid, and a grid item won't shrink
+            below its content — wide content (a scrolling chip row, long
+            code) would otherwise push the form past the dialog's edge. */}
+        <form onSubmit={onSubmit} noValidate className="min-w-0 space-y-5">
           {children}
 
           {error && (

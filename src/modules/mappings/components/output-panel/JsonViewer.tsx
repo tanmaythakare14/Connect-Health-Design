@@ -1,15 +1,7 @@
 import { useMemo, type JSX } from 'react';
-import type { JsonTokenKind, JsonViewerProps } from '../../@types';
+import type { JsonViewerProps } from '../../@types';
+import { JSON_TOKEN_CLASS_NAMES } from '../../constants';
 import { tokenizeJsonLine } from '../../utils';
-
-const TOKEN_CLASS_NAMES: Record<JsonTokenKind, string> = {
-  key: 'text-primary',
-  string: 'text-emerald-700 dark:text-emerald-400',
-  number: 'text-amber-700 dark:text-amber-400',
-  literal: 'text-sky-700 dark:text-sky-400',
-  punctuation: 'text-muted-foreground',
-  plain: '',
-};
 
 /** Read-only JSON with line numbers and colour; long lines wrap. */
 export function JsonViewer({ json }: JsonViewerProps): JSX.Element {
@@ -30,7 +22,7 @@ export function JsonViewer({ json }: JsonViewerProps): JSX.Element {
               {tokens.map((token, tokenIndex) => (
                 <span
                   key={tokenIndex}
-                  className={TOKEN_CLASS_NAMES[token.kind]}
+                  className={JSON_TOKEN_CLASS_NAMES[token.kind]}
                 >
                   {token.text}
                 </span>

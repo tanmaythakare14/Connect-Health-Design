@@ -6,8 +6,7 @@ import type {
 } from '../@types';
 
 /**
- * MOCK parsed HL7 sample (ORM^O01) and the refs it already maps, until the
- * editor reads a real sample and the template's saved mappings.
+ * MOCK parsed HL7 sample (ORM^O01), until the editor reads a real sample.
  */
 
 const field = (
@@ -208,23 +207,3 @@ export const MOCK_SOURCE_SAMPLE: SourceSample = {
   fileName: 'orm_o01_feeding_order.hl7',
   tree: ORM_O01_TREE,
 };
-
-export const MOCK_MAPPED_SOURCE_REFS: ReadonlySet<string> = new Set([
-  'MSH.7',
-  'MSH.9.1',
-  'MSH.9.2',
-  'PID.3.1',
-  'PV1.3.1',
-  'ORC.1',
-  'ORC.2.1',
-  'ORC.7.1',
-  'ORC.7.4',
-  'ORC.7.5',
-  'ORC.7.6',
-  'ORC.7.8',
-  'ORC.8.1',
-  'ORC.9',
-  'NTE',
-  'NTE.3',
-  'NTE.4',
-]);
