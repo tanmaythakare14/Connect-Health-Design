@@ -168,8 +168,9 @@ export function SourceTreeRow({
         <span
           id={`source-port-${node.ref}`}
           aria-hidden
+          title="Drag to a target field to map it"
           className={cn(
-            'ml-0.5 size-2.5 shrink-0 rounded-full border-[1.5px] transition-all',
+            "relative ml-0.5 size-2.5 shrink-0 cursor-grab rounded-full border-[1.5px] transition-all before:absolute before:-inset-1.5 before:content-[''] hover:scale-125 hover:border-primary data-[wire-dragging]:scale-125 data-[wire-dragging]:border-primary data-[wire-dragging]:bg-primary data-[wire-dragging]:ring-4 data-[wire-dragging]:ring-primary/20",
             isMapped
               ? 'border-primary bg-primary'
               : 'border-muted-foreground/50 bg-background',

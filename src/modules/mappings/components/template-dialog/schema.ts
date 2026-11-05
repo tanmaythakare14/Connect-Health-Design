@@ -92,3 +92,24 @@ export const mappingTemplateSchema = z
   });
 
 export type MappingTemplateFormValues = z.infer<typeof mappingTemplateSchema>;
+
+/** Editing an existing template from its card: only its name and description. */
+export const templateDetailsSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Template name is required')
+    .max(
+      MAPPING_TEMPLATE_NAME_MAX_LENGTH,
+      `Keep the name under ${MAPPING_TEMPLATE_NAME_MAX_LENGTH} characters`,
+    ),
+  description: z
+    .string()
+    .trim()
+    .max(
+      MAPPING_TEMPLATE_DESCRIPTION_MAX_LENGTH,
+      `Keep the description under ${MAPPING_TEMPLATE_DESCRIPTION_MAX_LENGTH} characters`,
+    ),
+});
+
+export type TemplateDetailsFormValues = z.infer<typeof templateDetailsSchema>;

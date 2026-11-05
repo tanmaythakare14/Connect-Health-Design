@@ -38,11 +38,14 @@ const ADD_OPTIONS: Array<{
 
 /**
  * The + on an object or group row: add a field or a nested group inside it,
- * or — for a list — another item like this one.
+ * or — for a list — another item like this one. With no `node`, it adds at
+ * the top level (the panel's "Add target field" button).
  */
 export function TargetAddMenu({
   node,
   className,
+  trigger,
+  align = 'end',
   onSelect,
 }: TargetAddMenuProps): JSX.Element {
   // Only a list (a repeating group, a group marked as repeating, or one of
@@ -50,25 +53,28 @@ export function TargetAddMenu({
   const options = ADD_OPTIONS.filter(
     (option) =>
       option.kind !== TARGET_ADD_KIND.ITEM ||
-      node.repeatSource !== undefined ||
-      node.isList === true ||
-      node.itemIndex !== undefined,
+      (node !== null &&
+        (node.repeatSource !== undefined ||
+          node.isList === true ||
+          node.itemIndex !== undefined)),
   );
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label={`Add to ${node.label}`}
-          title="Add"
-          // Stays shown while its menu is open, even off-hover.
-          className={cn(className, 'data-[state=open]:opacity-100')}
-        >
-          <Plus aria-hidden className="size-3.5" />
-        </button>
+        {trigger ?? (
+          <button
+            type="button"
+            aria-label={node ? `Add to ${node.label}` : 'Add to the target'}
+            title="Add"
+            // Stays shown while its menu is open, even off-hover.
+            className={cn(className, 'data-[state=open]:opacity-100')}
+          >
+            <Plus aria-hidden className="size-3.5" />
+          </button>
+        )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={6} className="w-64 p-1.5">
+      <DropdownMenuContent align={align} sideOffset={6} className="w-64 p-1.5">
         {options.map(({ kind, icon: Icon, label, description }) => (
           <DropdownMenuItem
             key={kind}

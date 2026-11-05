@@ -1,3 +1,4 @@
+export { EditTemplateDetailsDialog } from './EditTemplateDetailsDialog';
 export { MappingTemplateDialog } from './MappingTemplateDialog';
 export { CatalogCombobox } from './CatalogCombobox';
 export { CatalogModeToggle } from './CatalogModeToggle';

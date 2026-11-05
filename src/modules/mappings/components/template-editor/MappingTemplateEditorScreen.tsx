@@ -39,8 +39,11 @@ import {
   addTargetListItem,
   applyMappingSuggestions,
   applyTargetValue,
+  connectTargetField,
   collectMappingLinks,
   countTargetFields,
+  findSourceNode,
+  findTargetNode,
   insertTargetNode,
   isMappingsTab,
   isSameMappingLink,
@@ -236,6 +239,30 @@ export function MappingTemplateEditorScreen({
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // MOCK: mapped in the local tree only until saving exists.
+  const handleConnect = (sourceRef: string, targetPath: string): void => {
+    const source = sample ? findSourceNode(sample.tree, sourceRef) : null;
+    const field = targetSample
+      ? findTargetNode(targetSample.tree, targetPath)
+      : null;
+    if (!targetSample || !source || !field) return;
+    if (field.source?.ref === sourceRef) return; // already joined
+    const before = targetSample;
+    setTargetSample({
+      ...targetSample,
+      tree: connectTargetField(targetSample.tree, targetPath, {
+        ref: source.ref,
+        label: source.label,
+      }),
+    });
+    toast.success('Field mapped', {
+      description: field.source
+        ? `${source.ref} now fills ${targetPath}, instead of ${field.source.ref}.`
+        : `${source.ref} now fills ${targetPath}.`,
+      action: { label: 'Undo', onClick: () => setTargetSample(before) },
+    });
   };
 
   // Auto-map guesses waiting for review. Ones whose field has since been
@@ -586,6 +613,7 @@ export function MappingTemplateEditorScreen({
             onRemoveLink={handleRemoveLink}
             onAcceptSuggestion={(suggestion) => acceptSuggestions([suggestion])}
             onRejectSuggestion={handleRejectSuggestion}
+            onConnect={handleConnect}
           />
         </div>
       </MappingsSectionContent>

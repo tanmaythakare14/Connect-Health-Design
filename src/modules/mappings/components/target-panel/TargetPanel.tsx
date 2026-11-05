@@ -41,6 +41,7 @@ import { TableView } from '../table-view';
 import { MappingProgress } from './MappingProgress';
 import { TargetAddFieldForm } from './TargetAddFieldForm';
 import { TargetAddGroupForm } from './TargetAddGroupForm';
+import { TargetAddMenu } from './TargetAddMenu';
 import { TargetFilterToggle } from './TargetFilterToggle';
 import { TargetTree } from './TargetTree';
 
@@ -309,18 +310,23 @@ export function TargetPanel({
 
         <div className="shrink-0 border-t p-3">
           {renderAddForm(null) ?? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setAdding({ parentPath: null, kind: TARGET_ADD_KIND.FIELD })
+            // Field or group, the same choice as a group's + menu.
+            <TargetAddMenu
+              node={null}
+              align="center"
+              onSelect={(kind) => setAdding({ parentPath: null, kind })}
+              trigger={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-dashed text-muted-foreground hover:text-foreground data-[state=open]:border-primary/50 data-[state=open]:text-foreground"
+                >
+                  <Plus aria-hidden />
+                  Add target field
+                </Button>
               }
-              className="w-full border-dashed text-muted-foreground hover:text-foreground"
-            >
-              <Plus aria-hidden />
-              Add target field
-            </Button>
+            />
           )}
         </div>
       </>

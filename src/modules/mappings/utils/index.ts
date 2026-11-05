@@ -7,6 +7,7 @@ import type {
   MappingProjectDefinition,
   MappingProjectSort,
   SourceTreeNode,
+  TargetFieldSource,
   TargetFilter,
   TargetTreeNode,
   TargetValueChange,
@@ -937,4 +938,35 @@ export function openMappingSuggestions(
 
 export function isSameMappingLink(a: MappingLink, b: MappingLink): boolean {
   return a.sourceRef === b.sourceRef && a.targetPath === b.targetPath;
+}
+
+export function findSourceNode(
+  nodes: SourceTreeNode[],
+  ref: string,
+): SourceTreeNode | null {
+  for (const node of nodes) {
+    if (node.ref === ref) return node;
+    const found = node.children ? findSourceNode(node.children, ref) : null;
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
+ * The tree with the field at `path` filled from `source` — a thread dragged
+ * onto it. A fixed value or expression it had gives way to the source.
+ */
+export function connectTargetField(
+  nodes: TargetTreeNode[],
+  path: string,
+  source: TargetFieldSource,
+): TargetTreeNode[] {
+  const node = findTargetNode(nodes, path);
+  if (!node || node.children) return nodes;
+  return replaceTargetNode(nodes, path, {
+    ...node,
+    source,
+    customValue: undefined,
+    expression: undefined,
+  });
 }

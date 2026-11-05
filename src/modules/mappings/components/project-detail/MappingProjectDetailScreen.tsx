@@ -28,6 +28,7 @@ import type {
   MappingProjectDetailScreenProps,
   MappingTemplate,
   MappingTemplateFormValues,
+  TemplateDetailsFormValues,
   MappingTemplateListState,
   MappingTemplateSort,
 } from '../../@types';
@@ -45,13 +46,18 @@ import {
   deleteMappingTemplate,
   formValuesToSaveMappingTemplatePayload,
   listMappingTemplates,
+  mappingTemplateToFormValues,
   updateMappingTemplate,
 } from '../../service';
 import { filterMappingTemplates, sortMappingTemplates } from '../../utils';
 import { MappingProjectCardSkeleton } from '../mapping-project-card';
 import { ListToolbar } from '../shared';
 import { MappingTemplateCard } from '../template-card';
-import { MappingTemplateDialog } from '../template-dialog';
+import {
+  EditTemplateDetailsDialog,
+  MappingTemplateDialog,
+} from '../template-dialog';
+
 import { MappingTemplateEditorScreen } from '../template-editor';
 import { MappingProjectHeader } from './MappingProjectHeader';
 
@@ -76,6 +82,8 @@ export function MappingProjectDetailScreen({
   // The dialog edits this template, or adds one when it's null.
   const [editTarget, setEditTarget] = useState<MappingTemplate | null>(null);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  // Edit from a card changes only the name and description.
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   // Stays set after close so the dialog text doesn't vanish mid-animation.
   const [deleteTarget, setDeleteTarget] = useState<MappingTemplate | null>(
     null,
@@ -165,40 +173,48 @@ export function MappingProjectDetailScreen({
   };
 
   const handleAddTemplate = (): void => {
-    setEditTarget(null);
     setIsTemplateDialogOpen(true);
   };
 
   const handleEdit = (template: MappingTemplate): void => {
     setEditTarget(template);
-    setIsTemplateDialogOpen(true);
+    setIsDetailsDialogOpen(true);
   };
 
   // Rejections propagate so the dialog can show its inline error.
-  const handleSaveTemplate = async (
+  const handleSaveDetails = async (
+    values: TemplateDetailsFormValues,
+  ): Promise<void> => {
+    if (!editTarget) return;
+    // Everything else is saved back exactly as it was.
+    const payload = formValuesToSaveMappingTemplatePayload({
+      ...mappingTemplateToFormValues(editTarget),
+      ...values,
+    });
+    const updated = apiDtoToMappingTemplate(
+      await updateMappingTemplate(project.id, editTarget.id, payload),
+    );
+    commitTemplates((templates) =>
+      templates.map((template) =>
+        template.id === updated.id ? updated : template,
+      ),
+    );
+    setIsDetailsDialogOpen(false);
+    setHighlightedId(updated.id);
+    toast.success('Template updated', {
+      description: `“${updated.name}” has been saved.`,
+    });
+  };
+
+  // Rejections propagate so the dialog can show its inline error.
+  const handleCreateTemplate = async (
     values: MappingTemplateFormValues,
   ): Promise<void> => {
-    const payload = formValuesToSaveMappingTemplatePayload(values);
-
-    if (editTarget) {
-      const updated = apiDtoToMappingTemplate(
-        await updateMappingTemplate(project.id, editTarget.id, payload),
-      );
-      commitTemplates((templates) =>
-        templates.map((template) =>
-          template.id === updated.id ? updated : template,
-        ),
-      );
-      setIsTemplateDialogOpen(false);
-      setHighlightedId(updated.id);
-      toast.success('Template updated', {
-        description: `“${updated.name}” has been saved.`,
-      });
-      return;
-    }
-
     const created = apiDtoToMappingTemplate(
-      await createMappingTemplate(project.id, payload),
+      await createMappingTemplate(
+        project.id,
+        formValuesToSaveMappingTemplatePayload(values),
+      ),
     );
     commitTemplates((templates) => [created, ...templates]);
     // Show the new card first: no search, newest first, page 1.
@@ -430,8 +446,15 @@ export function MappingProjectDetailScreen({
       <MappingTemplateDialog
         open={isTemplateDialogOpen}
         onOpenChange={setIsTemplateDialogOpen}
+        template={null}
+        onSubmit={handleCreateTemplate}
+      />
+
+      <EditTemplateDetailsDialog
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
         template={editTarget}
-        onSubmit={handleSaveTemplate}
+        onSubmit={handleSaveDetails}
       />
 
       <ConfirmDialog

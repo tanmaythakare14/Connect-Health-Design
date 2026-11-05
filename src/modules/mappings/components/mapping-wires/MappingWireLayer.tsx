@@ -7,7 +7,11 @@ import type {
   SourceTreeNode,
   TargetTreeNode,
 } from '../../@types';
-import { findSourceAncestors, findTargetAncestors } from '../../utils';
+import {
+  findSourceAncestors,
+  findTargetAncestors,
+  findTargetNode,
+} from '../../utils';
 
 interface Point {
   x: number;
@@ -30,6 +34,17 @@ interface Wire {
   /** Both ends are on screen: drawn solid, the rest dotted and faded */
   isActive: boolean;
 }
+
+/** A thread being dragged out of a source port, in layer coordinates. */
+interface DraftWire {
+  from: Point;
+  to: Point;
+  /** Over a field it can map to: the end snaps to that field's port */
+  isSnapped: boolean;
+}
+
+const SOURCE_PORT_PREFIX = 'source-port-';
+const TARGET_ROW_PREFIX = 'target-row-';
 
 /** How far into the row a thread starts when it has to use the row edge. */
 const ROW_EDGE_INSET_PX = 8;
@@ -147,6 +162,8 @@ function computeWires(
  * dotted and faded, pinned to the edge of the panel they've scrolled out of.
  * Hovering a thread highlights it and shows a × at its middle to remove it.
  * Auto-map guesses are dashed amber; clicking one offers Accept and Reject.
+ * Holding a source port and dragging pulls out a new thread; dropping it on a
+ * target field maps that field.
  * Render inside the (positioned) row that holds both panels.
  */
 export function MappingWireLayer({
@@ -157,11 +174,127 @@ export function MappingWireLayer({
   onRemoveLink,
   onAcceptSuggestion,
   onRejectSuggestion,
+  onConnect,
 }: MappingWireLayerProps): JSX.Element {
   const layerRef = useRef<HTMLDivElement>(null);
   const [wires, setWires] = useState<Wire[]>([]);
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [draft, setDraft] = useState<DraftWire | null>(null);
+
+  // The drag listeners are bound once; they read the latest tree and handler.
+  const latest = useRef({ targetTree, onConnect });
+  useEffect(() => {
+    latest.current = { targetTree, onConnect };
+  }, [targetTree, onConnect]);
+
+  // Drag from a source port to a target field to map it.
+  useEffect(() => {
+    const container = layerRef.current?.parentElement;
+    if (!container) return;
+
+    let port: HTMLElement | null = null;
+    let dropRow: HTMLElement | null = null;
+
+    const toLayer = (point: Point): Point => {
+      const origin = container.getBoundingClientRect();
+      return { x: point.x - origin.left, y: point.y - origin.top };
+    };
+
+    /** The target field under the pointer, marked on its row for styling. */
+    const markDropRow = (
+      x: number,
+      y: number,
+    ): { path: string; row: HTMLElement } | null => {
+      const row =
+        document
+          .elementFromPoint(x, y)
+          ?.closest<HTMLElement>(`[id^="${TARGET_ROW_PREFIX}"]`) ?? null;
+      if (dropRow && dropRow !== row) delete dropRow.dataset.wireDrop;
+      dropRow = row;
+      if (!row) return null;
+      const path = row.id.slice(TARGET_ROW_PREFIX.length);
+      // Only fields take a value; groups and objects don't.
+      const node = findTargetNode(latest.current.targetTree, path);
+      const isField = node !== null && !node.children;
+      row.dataset.wireDrop = isField ? 'valid' : 'invalid';
+      return isField ? { path, row } : null;
+    };
+
+    const update = (event: PointerEvent): string | null => {
+      if (!port) return null;
+      const drop = markDropRow(event.clientX, event.clientY);
+      const targetPort = drop
+        ? document.getElementById(`target-port-${drop.path}`)
+        : null;
+      setDraft({
+        from: toLayer(centerOf(port.getBoundingClientRect())),
+        to: toLayer(
+          targetPort
+            ? centerOf(targetPort.getBoundingClientRect())
+            : { x: event.clientX, y: event.clientY },
+        ),
+        isSnapped: targetPort !== null,
+      });
+      return drop?.path ?? null;
+    };
+
+    const stop = (): void => {
+      if (port) delete port.dataset.wireDragging;
+      if (dropRow) delete dropRow.dataset.wireDrop;
+      port = null;
+      dropRow = null;
+      setDraft(null);
+      document.body.style.removeProperty('cursor');
+      document.body.style.removeProperty('user-select');
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+
+    const handleMove = (event: PointerEvent): void => {
+      update(event);
+    };
+    const handleUp = (event: PointerEvent): void => {
+      const ref = port?.id.slice(SOURCE_PORT_PREFIX.length);
+      const path = update(event);
+      stop();
+      if (ref && path) latest.current.onConnect(ref, path);
+    };
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') stop();
+    };
+
+    const handleDown = (event: PointerEvent): void => {
+      if (event.button !== 0) return;
+      // A mapped port has its own thread's hit area on top, so look through
+      // everything under the pointer, not just the topmost element.
+      const found = document
+        .elementsFromPoint(event.clientX, event.clientY)
+        .map((element) =>
+          element.closest<HTMLElement>(`[id^="${SOURCE_PORT_PREFIX}"]`),
+        )
+        .find((element) => element !== null);
+      if (!found) return;
+      event.preventDefault(); // no text selection while dragging
+      port = found;
+      port.dataset.wireDragging = '';
+      setHoveredKey(null);
+      setSelectedKey(null);
+      document.body.style.cursor = 'grabbing';
+      document.body.style.userSelect = 'none';
+      window.addEventListener('pointermove', handleMove);
+      window.addEventListener('pointerup', handleUp);
+      window.addEventListener('keydown', handleKeyDown);
+      update(event);
+    };
+
+    container.addEventListener('pointerdown', handleDown);
+    return () => {
+      container.removeEventListener('pointerdown', handleDown);
+      stop();
+    };
+  }, []);
   const leaveTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(leaveTimer.current), []);
@@ -306,7 +439,31 @@ export function MappingWireLayer({
         })}
       </svg>
 
-      {hovered && (
+      {draft && (
+        <svg
+          aria-hidden
+          className="absolute inset-0 size-full overflow-visible"
+        >
+          <path
+            d={curve(draft.from, draft.to)}
+            fill="none"
+            strokeLinecap="round"
+            className={
+              draft.isSnapped
+                ? 'stroke-primary stroke-2'
+                : 'stroke-primary stroke-2 opacity-70 [stroke-dasharray:5_4]'
+            }
+          />
+          <circle
+            cx={draft.to.x}
+            cy={draft.to.y}
+            r={draft.isSnapped ? 5 : 4}
+            className="fill-primary stroke-background stroke-2"
+          />
+        </svg>
+      )}
+
+      {hovered && !draft && (
         <button
           type="button"
           onClick={() => {

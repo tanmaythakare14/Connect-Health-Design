@@ -59,7 +59,7 @@ export function TargetTreeRow({
     <div
       id={`target-row-${node.path}`}
       className={cn(
-        'group/row flex h-8 items-center gap-1 rounded-md pr-1.5 pl-1.5 transition-colors',
+        'group/row flex h-8 items-center gap-1 rounded-md pr-1.5 pl-1.5 transition-colors data-[wire-drop=invalid]:cursor-not-allowed data-[wire-drop=valid]:bg-primary/10 data-[wire-drop=valid]:ring-1 data-[wire-drop=valid]:ring-primary/50 data-[wire-drop=valid]:ring-inset',
         isSelected
           ? 'bg-accent ring-1 ring-primary/30 ring-inset'
           : isMapped && !isBranch

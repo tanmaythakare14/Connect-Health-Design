@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 import type { NewMappingProjectFormValues } from '../components/new-project/schema';
-import type { MappingTemplateFormValues } from '../components/template-dialog/schema';
+import type {
+  MappingTemplateFormValues,
+  TemplateDetailsFormValues,
+} from '../components/template-dialog/schema';
 import type {
   MAPPING_FORMAT,
   MAPPINGS_TAB,
@@ -18,7 +21,11 @@ import type {
   TEMPLATE_OUTPUT_TYPE,
 } from '../constants';
 
-export type { MappingTemplateFormValues, NewMappingProjectFormValues };
+export type {
+  MappingTemplateFormValues,
+  NewMappingProjectFormValues,
+  TemplateDetailsFormValues,
+};
 
 export type MappingFormat =
   (typeof MAPPING_FORMAT)[keyof typeof MAPPING_FORMAT];
@@ -292,6 +299,15 @@ export interface MappingTemplateDialogProps {
   template: MappingTemplate | null;
   /** Resolves once saved; a rejection is shown inside the dialog. */
   onSubmit: (values: MappingTemplateFormValues) => Promise<void>;
+}
+
+export interface EditTemplateDetailsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** Kept while the dialog closes, so its fields don't blank mid-animation */
+  template: MappingTemplate | null;
+  /** Resolves once saved; a rejection is shown inside the dialog. */
+  onSubmit: (values: TemplateDetailsFormValues) => Promise<void>;
 }
 
 export interface OutputTypePickerProps {
@@ -611,6 +627,8 @@ export interface MappingWireLayerProps {
   onRemoveLink: (link: MappingLink) => void;
   onAcceptSuggestion: (suggestion: MappingSuggestion) => void;
   onRejectSuggestion: (suggestion: MappingSuggestion) => void;
+  /** A thread dragged from a source port and dropped on a target field */
+  onConnect: (sourceRef: string, targetPath: string) => void;
 }
 
 export interface AutoMapBannerProps {
@@ -620,10 +638,14 @@ export interface AutoMapBannerProps {
 }
 
 export interface TargetAddMenuProps {
-  /** The object or group being added to */
-  node: TargetTreeNode;
-  /** Styles the + trigger */
+  /** The object or group being added to; null for the top level */
+  node: TargetTreeNode | null;
+  /** Styles the default + trigger */
   className?: string;
+  /** Replaces the + trigger, e.g. with the panel's "Add target field" button */
+  trigger?: ReactNode;
+  /** Which edge of the trigger the menu lines up with */
+  align?: 'start' | 'center' | 'end';
   onSelect: (kind: TargetAddKind) => void;
 }
 
