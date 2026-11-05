@@ -8,7 +8,7 @@ import { FiltersPanel } from './FiltersPanel';
 /**
  * What sits under the Mappings | Filters strip: the view's own body, or the
  * Filters panel. The body stays mounted while Filters is open, so coming back
- * finds the same project or template, with any unsaved edits.
+ * finds the template just as it was, unsaved edits included.
  */
 export function MappingsSectionContent({
   children,

@@ -10,8 +10,8 @@ const TAB_CLASS_NAME =
   'h-11 gap-1.5 px-3 text-sm data-[state=active]:text-primary dark:data-[state=active]:text-primary';
 
 /**
- * The Mappings | Filters strip. Each view renders it under its breadcrumbs,
- * inside the screen's `Tabs` root, with `MappingsSectionContent` below it.
+ * The template editor's Mappings | Filters strip, under its breadcrumbs,
+ * inside the editor's `Tabs` root, with `MappingsSectionContent` below it.
  */
 export function MappingsSectionTabs({
   actions,

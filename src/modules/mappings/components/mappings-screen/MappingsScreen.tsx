@@ -7,7 +7,6 @@ import {
   TablePagination,
 } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Tabs } from '@/components/ui/tabs';
 import { logger } from '@/utils/logger';
 import { getPageCount, paginate } from '@/utils/pagination';
 import type {
@@ -16,7 +15,6 @@ import type {
   MappingProject,
   MappingProjectListState,
   MappingProjectSort,
-  MappingsTab,
   MappingTemplate,
   NewMappingProjectFormValues,
 } from '../../@types';
@@ -24,7 +22,6 @@ import {
   DEFAULT_MAPPING_PROJECT_SORT,
   DEFAULT_PAGE_SIZE,
   MAPPING_PROJECT_SORT_OPTIONS,
-  MAPPINGS_TAB,
   PAGE_SIZE_OPTIONS,
   PAGINATION_THRESHOLD,
   SKELETON_CARD_COUNT,
@@ -42,7 +39,6 @@ import {
   deriveProjectFormat,
   filterMappingProjects,
   findMappingProjectByName,
-  isMappingsTab,
   sortMappingProjects,
 } from '../../utils';
 import { ImportMappingProjectDialog } from '../import-project';
@@ -53,18 +49,11 @@ import {
 } from '../mapping-project-card';
 import { MappingProjectDetailScreen } from '../project-detail';
 import { ListToolbar } from '../shared';
-import {
-  MappingsSectionContent,
-  MappingsSectionTabs,
-} from '../mappings-section';
 
 const GRID_CLASS_NAME =
   'grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4';
 
 export function MappingsScreen(): JSX.Element {
-  const [activeTab, setActiveTab] = useState<MappingsTab>(
-    MAPPINGS_TAB.MAPPINGS,
-  );
   const [listState, setListState] = useState<MappingProjectListState>({
     status: 'loading',
   });
@@ -361,92 +350,72 @@ export function MappingsScreen(): JSX.Element {
     );
   };
 
+  if (openProject) {
+    return (
+      <MappingProjectDetailScreen
+        project={openProject}
+        onBack={() => setOpenProjectId(null)}
+        onTemplatesChange={handleTemplatesChange}
+      />
+    );
+  }
+
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(value) => {
-        if (isMappingsTab(value)) setActiveTab(value);
-      }}
-      className="h-full min-h-0 gap-0"
-    >
-      {/* Each view scrolls under its own breadcrumbs and Mappings | Filters
-          strip; the tabs only switch the body below the strip. */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        {openProject ? (
-          <MappingProjectDetailScreen
-            project={openProject}
-            onBack={() => setOpenProjectId(null)}
-            onTemplatesChange={handleTemplatesChange}
-          />
-        ) : (
-          <>
-            <MappingsSectionTabs />
-            <MappingsSectionContent
-              className="space-y-6 p-6"
-              filtersClassName="p-6"
-            >
-              <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                  Mapping Projects
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Author field mappings visually and run them in workflows via
-                  the Mapper node
-                </p>
-              </div>
+    <div className="space-y-6 p-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Mapping Projects
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Author field mappings visually and run them in workflows via the
+          Mapper node
+        </p>
+      </div>
 
-              <div className="space-y-4">
-                <ListToolbar
-                  search={search}
-                  onSearchChange={handleSearchChange}
-                  searchPlaceholder="Search projects"
-                  sort={sort}
-                  sortOptions={MAPPING_PROJECT_SORT_OPTIONS}
-                  onSortChange={handleSortChange}
-                  count={
-                    listState.status === 'success'
-                      ? visibleProjects.length
-                      : null
-                  }
-                  countNoun={{ one: 'project', other: 'projects' }}
-                  disabled={listState.status !== 'success'}
-                  actions={
-                    <>
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsImportDialogOpen(true)}
-                      >
-                        <Upload aria-hidden />
-                        Import Project
-                      </Button>
-                      <Button onClick={handleNewProject}>
-                        <Plus aria-hidden />
-                        New Project
-                      </Button>
-                    </>
-                  }
-                />
+      <div className="space-y-4">
+        <ListToolbar
+          search={search}
+          onSearchChange={handleSearchChange}
+          searchPlaceholder="Search projects"
+          sort={sort}
+          sortOptions={MAPPING_PROJECT_SORT_OPTIONS}
+          onSortChange={handleSortChange}
+          count={listState.status === 'success' ? visibleProjects.length : null}
+          countNoun={{ one: 'project', other: 'projects' }}
+          disabled={listState.status !== 'success'}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setIsImportDialogOpen(true)}
+              >
+                <Upload aria-hidden />
+                Import Project
+              </Button>
+              <Button onClick={handleNewProject}>
+                <Plus aria-hidden />
+                New Project
+              </Button>
+            </>
+          }
+        />
 
-                {renderContent()}
+        {renderContent()}
 
-                {listState.status === 'success' &&
-                  visibleProjects.length > PAGINATION_THRESHOLD && (
-                    <div className="rounded-lg border bg-card">
-                      <TablePagination
-                        page={currentPage}
-                        pageSize={pageSize}
-                        totalItems={visibleProjects.length}
-                        itemLabel="projects"
-                        pageSizeOptions={PAGE_SIZE_OPTIONS}
-                        onPageChange={setPage}
-                        onPageSizeChange={handlePageSizeChange}
-                      />
-                    </div>
-                  )}
-              </div>
-            </MappingsSectionContent>
-          </>
-        )}
+        {listState.status === 'success' &&
+          visibleProjects.length > PAGINATION_THRESHOLD && (
+            <div className="rounded-lg border bg-card">
+              <TablePagination
+                page={currentPage}
+                pageSize={pageSize}
+                totalItems={visibleProjects.length}
+                itemLabel="projects"
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onPageChange={setPage}
+                onPageSizeChange={handlePageSizeChange}
+              />
+            </div>
+          )}
       </div>
 
       <NewMappingProjectDialog
@@ -481,6 +450,6 @@ export function MappingsScreen(): JSX.Element {
         onConfirm={handleConfirmDelete}
         errorMessage="We couldn’t delete the project. Please try again."
       />
-    </Tabs>
+    </div>
   );
 }

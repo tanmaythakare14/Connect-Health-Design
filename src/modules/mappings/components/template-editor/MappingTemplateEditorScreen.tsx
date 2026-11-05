@@ -8,12 +8,14 @@ import {
 import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog, PanelResizeHandle } from '@/components/common';
+import { Tabs } from '@/components/ui/tabs';
 import { useResizablePanels } from '@/hooks/useResizablePanels';
 import { logger } from '@/utils/logger';
 import type {
   GroupCondition,
   MappingLink,
   MappingSuggestion,
+  MappingsTab,
   MappingTemplateEditorScreenProps,
   SourceSample,
   SourceSampleSubmission,
@@ -24,6 +26,7 @@ import type {
   TargetValueChange,
 } from '../../@types';
 import {
+  MAPPINGS_TAB,
   TEMPLATE_INPUT_TYPE_LABELS,
   TEMPLATE_OUTPUT_TYPE,
 } from '../../constants';
@@ -39,6 +42,7 @@ import {
   collectMappingLinks,
   countTargetFields,
   insertTargetNode,
+  isMappingsTab,
   isSameMappingLink,
   openMappingSuggestions,
   removeTargetLink,
@@ -128,6 +132,11 @@ export function MappingTemplateEditorScreen({
     flexGrow: sizes[index],
     minWidth: COLUMN_MIN_WIDTHS_PX[index],
   });
+
+  // Mappings | Filters, under the breadcrumbs. Only this screen has them.
+  const [activeTab, setActiveTab] = useState<MappingsTab>(
+    MAPPINGS_TAB.MAPPINGS,
+  );
 
   // MOCK: every template opens on the same parsed ORM^O01 sample.
   const [sample, setSample] = useState<SourceSample | null>(MOCK_SOURCE_SAMPLE);
@@ -458,7 +467,13 @@ export function MappingTemplateEditorScreen({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col animate-in fade-in-0 duration-200">
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => {
+        if (isMappingsTab(value)) setActiveTab(value);
+      }}
+      className="h-full min-h-0 gap-0 animate-in fade-in-0 duration-200"
+    >
       <TemplateEditorHeader
         project={project}
         template={template}
@@ -624,6 +639,6 @@ export function MappingTemplateEditorScreen({
         confirmIcon={Trash2}
         onConfirm={handleConfirmDeleteTarget}
       />
-    </div>
+    </Tabs>
   );
 }
