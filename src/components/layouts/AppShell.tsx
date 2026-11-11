@@ -5,6 +5,7 @@ import {
   GET_STARTED_GUIDES,
   MAIN_NAV_ITEMS,
   PAGE_GUIDES,
+  PRODUCT_LOGO_DARK_SRC,
   PRODUCT_LOGO_SRC,
   PRODUCT_NAME,
   SETTINGS_NAV_ITEM,
@@ -50,6 +51,7 @@ export function AppShell({
     <div className="relative flex h-screen flex-col overflow-hidden bg-canvas">
       <AppTopBar
         logoSrc={PRODUCT_LOGO_SRC}
+        logoDarkSrc={PRODUCT_LOGO_DARK_SRC}
         productName={PRODUCT_NAME}
         isSidebarCollapsed={isCollapsed}
         onToggleSidebar={() => dispatch(toggleSidebar())}

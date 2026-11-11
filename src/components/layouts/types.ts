@@ -23,6 +23,8 @@ export interface HelpGuide {
 
 export interface AppTopBarProps {
   logoSrc: string;
+  /** Shown instead of logoSrc in dark mode */
+  logoDarkSrc: string;
   productName: string;
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;

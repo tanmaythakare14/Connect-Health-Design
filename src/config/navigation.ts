@@ -8,12 +8,16 @@ import {
   Shuffle,
   Workflow,
 } from 'lucide-react';
+import connectHealthLogoDark from '@/assets/connecthealth-logo-dark.svg';
 import connectHealthLogo from '@/assets/connecthealth-logo.svg';
 import type { HelpGuide, NavItem } from '@/components/layouts/types';
 
 export const PRODUCT_NAME = 'ConnectHealth';
 
 export const PRODUCT_LOGO_SRC = connectHealthLogo;
+
+/** Same wordmark with a white "connect", so it reads on the dark theme */
+export const PRODUCT_LOGO_DARK_SRC = connectHealthLogoDark;
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },

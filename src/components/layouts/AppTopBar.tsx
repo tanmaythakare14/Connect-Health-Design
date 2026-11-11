@@ -5,6 +5,7 @@ import type { AppTopBarProps } from './types';
 
 export function AppTopBar({
   logoSrc,
+  logoDarkSrc,
   productName,
   isSidebarCollapsed,
   onToggleSidebar,
@@ -30,7 +31,13 @@ export function AppTopBar({
         <img
           src={logoSrc}
           alt={productName}
-          className="h-5 w-auto select-none"
+          className="h-5 w-auto select-none dark:hidden"
+          draggable={false}
+        />
+        <img
+          src={logoDarkSrc}
+          alt={productName}
+          className="hidden h-5 w-auto select-none dark:block"
           draggable={false}
         />
       </div>
