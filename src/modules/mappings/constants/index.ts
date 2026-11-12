@@ -387,6 +387,10 @@ export const JSON_TOKEN_CLASS_NAMES: Record<JsonTokenKind, string> = {
   plain: '',
 };
 
+/** Values on output lines that share the hovered line's path. */
+export const JSON_MATCH_VALUE_CLASS_NAME =
+  'rounded-[3px] bg-primary/10 outline outline-1 outline-primary/60 dark:bg-primary/20';
+
 /** The resource "Start a FHIR Bundle" builds around (and picks). */
 export const FHIR_BUNDLE_STARTER_RESOURCE = 'Patient';
 

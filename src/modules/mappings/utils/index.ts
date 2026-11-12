@@ -332,6 +332,36 @@ export function tokenizeJsonLine(line: string): JsonToken[] {
   return tokens;
 }
 
+const JSON_KEY_PATTERN = /^"((?:[^"\\]|\\.)*)":\s*(.*)$/;
+
+/**
+ * Each line's place in pretty-printed JSON, with array positions as `[*]` so
+ * the same entry in every item shares one path (`$.notes[*].text`). Closing
+ * lines get null.
+ */
+export function jsonLinePaths(json: string): (string | null)[] {
+  const stack: string[] = [];
+  return json.split('\n').map((line) => {
+    const text = line.trim().replace(/,$/, '');
+    if (text === '}' || text === ']') {
+      stack.pop();
+      return null;
+    }
+    const parent = stack[stack.length - 1] as string | undefined;
+    const isInArray = parent?.endsWith('[]') ?? false;
+    const keyMatch = isInArray ? null : JSON_KEY_PATTERN.exec(text);
+    const parentPath = parent?.replace(/\[\]$/, '');
+    let path = '$';
+    if (parentPath !== undefined) {
+      path = keyMatch ? `${parentPath}.${keyMatch[1]}` : `${parentPath}[*]`;
+    }
+    const value = keyMatch ? keyMatch[2] : text;
+    if (value === '{') stack.push(path);
+    else if (value === '[') stack.push(`${path}[]`);
+    return path;
+  });
+}
+
 /** The tree without the node at `path` (and anything under it). */
 export function removeTargetNode(
   nodes: TargetTreeNode[],
